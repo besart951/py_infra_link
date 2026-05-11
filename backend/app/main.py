@@ -11,6 +11,10 @@ from app.database.engine import dispose_engine
 from app.modules.building.presentation.routes import router as building_router
 from app.modules.control_cabinet.presentation.routes import router as cabinet_router
 from app.modules.facility.presentation.routes import router as facility_router
+from app.modules.sps_controller.presentation.routes import router as controller_router
+from app.modules.sps_controller_system_type.presentation.routes import (
+    router as system_type_router,
+)
 from app.modules.user.presentation.routes import router as user_router
 
 
@@ -33,6 +37,8 @@ app.include_router(user_router)
 app.include_router(facility_router)
 app.include_router(building_router)
 app.include_router(cabinet_router)
+app.include_router(system_type_router)
+app.include_router(controller_router)
 
 
 @app.get("/healthz", tags=["health"])

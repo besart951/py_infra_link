@@ -4,19 +4,19 @@
 
 - **Shared kernel** — `errors`, `result`, `ids`, `clock`, `pagination` — 27 interface-level tests, ruff clean
 - **Database layer** — `engine`, `session`, `transaction`, Alembic baseline migration
-- **User / auth / domain identity** — deep User Module (domain/application/infrastructure/presentation), SQLAlchemy model + adapter, FastAPI routes, Alembic users-table migration, interface tests
-- **Facility domain** — deep Facility Module (CRUD), domain validation, SQLAlchemy adapter + migration, interface tests (7 new tests)
-- **Building domain** — deep Building Module (CRUD), hierarchical routes, composite uniqueness, cross-module validation, interface tests (7 new tests)
-- **Control Cabinet domain** — deep Control Cabinet Module (CRUD), hierarchical routes, composite uniqueness, cross-module validation, interface tests (7 new tests)
+- **User / auth / domain identity** — deep User Module, SQLAlchemy model + adapter, FastAPI routes, Alembic migration, tests
+- **Facility domain** — deep Facility Module, domain validation, SQLAlchemy adapter + migration, tests
+- **Building domain** — deep Building Module, hierarchical routes, composite uniqueness, cross-module validation, tests
+- **Control Cabinet domain** — deep Control Cabinet Module, hierarchical routes, composite uniqueness, cross-module validation, tests
+- **SPS Controller System Type domain** — deep Module, classification classification, SQLAlchemy adapter + migration, tests
+- **SPS Controller domain** — deep Module, hierarchical routes, cross-module validation (Cabinet, System Type), SQLAlchemy adapter + migration, tests
 
 ## In Progress
 
-_(none — ready to start SPS Controller domain)_
+_(none — ready to start Field Device domain)_
 
 ## Not Started
 
-- SPS Controller domain
-- SPS Controller System Type domain
 - Field Device domain
 - BACnet Object domain
 - Project domain
@@ -38,4 +38,4 @@ _(none — ready to start SPS Controller domain)_
 
 ## Next Run Recommendation
 
-Implement the **SPS Controller domain** (priority 7). Continue following the hierarchical patterns.
+Implement the **Field Device domain** (priority 9). Continue following the hierarchical patterns.

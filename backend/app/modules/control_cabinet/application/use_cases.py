@@ -44,7 +44,7 @@ class ControlCabinetModule:
         | InvalidControlCabinetNameError,
     ]:
         try:
-            name = ControlCabinetName.parse(command.name)
+            name: ControlCabinetName = ControlCabinetName.parse(command.name)
         except InvalidControlCabinetNameError as exc:
             return Err(exc)
 
