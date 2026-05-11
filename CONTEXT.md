@@ -61,6 +61,23 @@ _Avoid_: Account, member, operator
 - A **Project** has zero or more **Project Resource Links**
 - A **Project Resource Link** references one piece of infrastructure at any level of the hierarchy
 
+## Coding Standards
+
+To maintain consistency and leverage modern Python features, all domains must follow these rules:
+
+### Modules and Adapters
+- Use `@dataclass(frozen=True, slots=True)` for **Module** and **Adapter** classes.
+- Eliminate manual `__init__` methods.
+- In **Module** classes (application layer), fields must be **public** (e.g., `repository: UserRepository`) to allow easy dependency injection in routes.
+- In **Adapter** classes (infrastructure layer), fields should be **private** (e.g., `_session: AsyncSession`) to encapsulate implementation details.
+- Use `field(default_factory=dict)` for mutable state in in-memory adapters.
+
+### Imports and Type Safety
+- Always use `from __future__ import annotations`.
+- Use explicit return types on every function.
+- Prefer `list[str]`, `dict[str, str]` etc. over `typing.List`.
+- Use `Protocol` for repository interfaces.
+
 ## Example dialogue
 
 > **Dev:** "When a user imports a Building into a Project, do we copy the whole Control Cabinet hierarchy?"

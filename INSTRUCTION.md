@@ -217,6 +217,9 @@ Rules:
 - Use `Mapped[...]` and `mapped_column(...)`.
 - Use modern Python typing.
 - Use `from __future__ import annotations` where helpful.
+- Use `@dataclass(frozen=True, slots=True)` for **Module** and **Adapter** classes to eliminate manual `__init__`.
+- In **Module** classes, fields must be **public** for route compatibility.
+- In **Adapter** classes, fields should be **private** (prefixed with `_`).
 - Use `typing.Protocol` only when there is a real Seam with at least two Adapters.
 - Prefer immutable value objects where possible.
 - Prefer dataclasses or Pydantic models intentionally, not randomly.
