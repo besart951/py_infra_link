@@ -10,6 +10,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from app.database.base import Base
+
 # ── Alembic config ─────────────────────────────────────────────────────────────
 config = context.config
 
@@ -17,14 +19,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ── Import Base metadata for autogenerate ──────────────────────────────────────
-# As domain modules add SQLAlchemy models they must be imported here so that
-# Alembic can detect schema changes via autogenerate.
-#
-# Example (add when building the Facility module):
-#   from app.modules.facility.infrastructure.sqlalchemy_models import Base
-#
-# For now we use None — the baseline migration produces an empty schema.
-target_metadata = None
+# Keep each module's SQLAlchemy models imported in this file so Alembic sees all
+# tables through Base.metadata.
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

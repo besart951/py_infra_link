@@ -86,19 +86,13 @@ class TestResult:
 
     def test_match_ok(self) -> None:
         result: Ok[int] | Err[NotFoundError] = Ok(99)
-        match result:
-            case Ok(value=v):
-                assert v == 99
-            case Err():
-                pytest.fail("expected Ok")
+        assert isinstance(result, Ok)
+        assert result.value == 99
 
     def test_match_err(self) -> None:
         result: Ok[int] | Err[NotFoundError] = Err(NotFoundError("gone"))
-        match result:
-            case Ok():
-                pytest.fail("expected Err")
-            case Err(error=e):
-                assert isinstance(e, NotFoundError)
+        assert isinstance(result, Err)
+        assert isinstance(result.error, NotFoundError)
 
 
 # ── ids ────────────────────────────────────────────────────────────────────────
@@ -173,8 +167,7 @@ class TestPageParams:
 
 class TestPage:
     def test_basic_page(self) -> None:
-        params = PageParams(page=1, size=5)
-        page: Page[int] = Page.of(items=[1, 2, 3], total=3, params=params)
+        page = Page[int](items=[1, 2, 3], total=3, page=1, size=5)
         assert page.items == [1, 2, 3]
         assert page.total == 3
         assert page.pages == 1
@@ -182,15 +175,13 @@ class TestPage:
         assert not page.has_prev
 
     def test_multi_page(self) -> None:
-        params = PageParams(page=2, size=5)
-        page: Page[int] = Page.of(items=list(range(5)), total=13, params=params)
+        page = Page[int](items=list(range(5)), total=13, page=2, size=5)
         assert page.pages == 3
         assert page.has_next
         assert page.has_prev
 
     def test_empty_page(self) -> None:
-        params = PageParams(page=1, size=10)
-        page: Page[int] = Page.of(items=[], total=0, params=params)
+        page = Page[int](items=[], total=0, page=1, size=10)
         assert page.pages == 0
         assert not page.has_next
         assert not page.has_prev

@@ -2,20 +2,31 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.database.engine import dispose_engine
+from app.modules.user.presentation.routes import router as user_router
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+    try:
+        yield
+    finally:
+        await dispose_engine()
+
 
 app = FastAPI(
     title="py_infra_link",
     description="Infrastructure linking platform.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
-
-@app.on_event("shutdown")
-async def _on_shutdown() -> None:
-    await dispose_engine()
+app.include_router(user_router)
 
 
 @app.get("/healthz", tags=["health"])

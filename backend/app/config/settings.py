@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from pydantic import Field, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,7 +10,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="APP_", env_file=".env", extra="ignore")
 
     database_url: PostgresDsn = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/py_infra_link",
+        default=cast(
+            PostgresDsn,
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/py_infra_link",
+        ),
         description="Async PostgreSQL connection URL.",
     )
     debug: bool = Field(default=False, description="Enable debug mode.")

@@ -17,6 +17,7 @@ the requested ``NewType``, preserving static type information.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from typing import NewType
 
 # ── Entity ID types ────────────────────────────────────────────────────────────
@@ -46,11 +47,11 @@ AnyEntityId = (
 )
 
 
-def new_id[T](id_type: type[T]) -> T:  # type: ignore[misc]
+def new_id[T](id_type: Callable[[uuid.UUID], T]) -> T:
     """Return a new random UUID cast to ``id_type``.
 
     Because ``id_type`` is a ``NewType``, this is purely a cast at runtime
     (``NewType`` constructors are identity functions), but the static type
     checker treats the result as ``T``.
     """
-    return id_type(uuid.uuid4())  # type: ignore[call-arg]
+    return id_type(uuid.uuid4())

@@ -4,14 +4,14 @@
 
 - **Shared kernel** — `errors`, `result`, `ids`, `clock`, `pagination` — 27 interface-level tests, ruff clean
 - **Database layer** — `engine`, `session`, `transaction`, Alembic baseline migration
+- **User / auth / domain identity** — deep User Module (domain/application/infrastructure/presentation), SQLAlchemy model + adapter, FastAPI routes, Alembic users-table migration, interface tests
 
 ## In Progress
 
-_(none — ready to start User/auth domain)_
+_(none — ready to start Facility domain)_
 
 ## Not Started
 
-- User / auth / domain identity
 - Facility domain
 - Building domain
 - Control Cabinet domain
@@ -33,10 +33,9 @@ _(none — ready to start User/auth domain)_
 ## Known Risks
 
 - No CI pipeline yet — needs a GitHub Actions workflow
-- `pyright` strict-mode not fully verified (no live DB for engine imports)
-- Alembic baseline not yet applied to a live database
+- Alembic migrations validated in offline SQL mode only; not yet applied to a live PostgreSQL instance
+- Authentication/authorization behavior is still not implemented (identity CRUD exists)
 
 ## Next Run Recommendation
 
-Implement the **User / auth / domain identity** module.  This will be the first domain module and will establish the `modules/<domain>/` folder structure including SQLAlchemy ORM model, Alembic migration, Pydantic v2 schemas, and FastAPI routes.
-
+Implement the **Facility domain** (priority 4). Reuse the User Module patterns: thin routes, domain Interface as test surface, SQLAlchemy adapter, and explicit transaction boundaries.
