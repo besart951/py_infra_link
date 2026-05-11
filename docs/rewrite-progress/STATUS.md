@@ -2,16 +2,16 @@
 
 ## Completed Domains
 
-_(none yet)_
+- **Shared kernel** — `errors`, `result`, `ids`, `clock`, `pagination` — 27 interface-level tests, ruff clean
+- **Database layer** — `engine`, `session`, `transaction`, Alembic baseline migration
+- **User / auth / domain identity** — deep User Module (domain/application/infrastructure/presentation), SQLAlchemy model + adapter, FastAPI routes, Alembic users-table migration, interface tests
 
 ## In Progress
 
-- **Shared kernel** — project skeleton, shared error model, result type, pagination, IDs, clock
+_(none — ready to start Facility domain)_
 
 ## Not Started
 
-- Database session and transaction handling
-- User / auth / domain identity
 - Facility domain
 - Building domain
 - Control Cabinet domain
@@ -32,9 +32,10 @@ _(none yet)_
 
 ## Known Risks
 
-- No existing tests or CI pipeline — must be established in the shared-kernel run
-- No existing database — Alembic baseline migration needed after first model is written
+- No CI pipeline yet — needs a GitHub Actions workflow
+- Alembic migrations validated in offline SQL mode only; not yet applied to a live PostgreSQL instance
+- Authentication/authorization behavior is still not implemented (identity CRUD exists)
 
 ## Next Run Recommendation
 
-Implement the **shared kernel** + **database layer** (Candidates 1 and 2 below). These are in-process or local-substitutable dependencies — always deepenable, zero external blockers.
+Implement the **Facility domain** (priority 4). Reuse the User Module patterns: thin routes, domain Interface as test surface, SQLAlchemy adapter, and explicit transaction boundaries.
