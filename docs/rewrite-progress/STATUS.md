@@ -6,14 +6,14 @@
 - **Database layer** — `engine`, `session`, `transaction`, Alembic baseline migration
 - **User / auth / domain identity** — deep User Module (domain/application/infrastructure/presentation), SQLAlchemy model + adapter, FastAPI routes, Alembic users-table migration, interface tests
 - **Facility domain** — deep Facility Module (CRUD), domain validation, SQLAlchemy adapter + migration, interface tests (7 new tests)
+- **Building domain** — deep Building Module (CRUD), hierarchical routes, composite uniqueness, cross-module validation, interface tests (7 new tests)
 
 ## In Progress
 
-_(none — ready to start Building domain)_
+_(none — ready to start Control Cabinet domain)_
 
 ## Not Started
 
-- Building domain
 - Control Cabinet domain
 - SPS Controller domain
 - SPS Controller System Type domain
@@ -38,4 +38,4 @@ _(none — ready to start Building domain)_
 
 ## Next Run Recommendation
 
-Implement the **Building domain** (priority 5). Continue following the Facility/User Module patterns.
+Implement the **Control Cabinet domain** (priority 6). Continue following the hierarchical patterns established in the Building domain.
