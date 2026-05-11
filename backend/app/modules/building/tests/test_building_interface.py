@@ -110,7 +110,6 @@ async def test_get_building_success(
         await module.create_building(CreateBuildingCommand(facility_id=fid, name="A"))
     ).unwrap()
 
-
     result = await module.get_building(GetBuildingQuery(facility_id=fid, building_id=created.id))
     assert isinstance(result, Ok)
     assert result.unwrap().id == created.id
@@ -148,7 +147,6 @@ async def test_update_building_success(
         await module.create_building(CreateBuildingCommand(facility_id=fid, name="A"))
     ).unwrap()
 
-
     result = await module.update_building(
         UpdateBuildingCommand(facility_id=fid, building_id=created.id, name="B")
     )
@@ -168,7 +166,6 @@ async def test_delete_building_success(
     created = (
         await module.create_building(CreateBuildingCommand(facility_id=fid, name="A"))
     ).unwrap()
-
 
     result = await module.delete_building(facility_id=fid, building_id=created.id)
     assert isinstance(result, Ok)

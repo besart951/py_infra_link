@@ -7,14 +7,14 @@
 - **User / auth / domain identity** — deep User Module (domain/application/infrastructure/presentation), SQLAlchemy model + adapter, FastAPI routes, Alembic users-table migration, interface tests
 - **Facility domain** — deep Facility Module (CRUD), domain validation, SQLAlchemy adapter + migration, interface tests (7 new tests)
 - **Building domain** — deep Building Module (CRUD), hierarchical routes, composite uniqueness, cross-module validation, interface tests (7 new tests)
+- **Control Cabinet domain** — deep Control Cabinet Module (CRUD), hierarchical routes, composite uniqueness, cross-module validation, interface tests (7 new tests)
 
 ## In Progress
 
-_(none — ready to start Control Cabinet domain)_
+_(none — ready to start SPS Controller domain)_
 
 ## Not Started
 
-- Control Cabinet domain
 - SPS Controller domain
 - SPS Controller System Type domain
 - Field Device domain
@@ -38,4 +38,4 @@ _(none — ready to start Control Cabinet domain)_
 
 ## Next Run Recommendation
 
-Implement the **Control Cabinet domain** (priority 6). Continue following the hierarchical patterns established in the Building domain.
+Implement the **SPS Controller domain** (priority 7). Continue following the hierarchical patterns.

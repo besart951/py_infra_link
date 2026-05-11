@@ -54,7 +54,6 @@ class BuildingModule:
                 FacilityDoesNotExistError(f"Facility '{command.facility_id}' does not exist")
             )
 
-
         # Check for name conflict in this facility
         existing = await self._building_repository.get_by_facility_and_name(
             command.facility_id, name

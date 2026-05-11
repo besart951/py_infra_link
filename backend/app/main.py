@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from app.database.engine import dispose_engine
 from app.modules.building.presentation.routes import router as building_router
+from app.modules.control_cabinet.presentation.routes import router as cabinet_router
 from app.modules.facility.presentation.routes import router as facility_router
 from app.modules.user.presentation.routes import router as user_router
 
@@ -31,6 +32,7 @@ app = FastAPI(
 app.include_router(user_router)
 app.include_router(facility_router)
 app.include_router(building_router)
+app.include_router(cabinet_router)
 
 
 @app.get("/healthz", tags=["health"])
