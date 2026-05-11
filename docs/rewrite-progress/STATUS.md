@@ -2,15 +2,15 @@
 
 ## Completed Domains
 
-_(none yet)_
+- **Shared kernel** — `errors`, `result`, `ids`, `clock`, `pagination` — 27 interface-level tests, ruff clean
+- **Database layer** — `engine`, `session`, `transaction`, Alembic baseline migration
 
 ## In Progress
 
-- **Shared kernel** — project skeleton, shared error model, result type, pagination, IDs, clock
+_(none — ready to start User/auth domain)_
 
 ## Not Started
 
-- Database session and transaction handling
 - User / auth / domain identity
 - Facility domain
 - Building domain
@@ -32,9 +32,11 @@ _(none yet)_
 
 ## Known Risks
 
-- No existing tests or CI pipeline — must be established in the shared-kernel run
-- No existing database — Alembic baseline migration needed after first model is written
+- No CI pipeline yet — needs a GitHub Actions workflow
+- `pyright` strict-mode not fully verified (no live DB for engine imports)
+- Alembic baseline not yet applied to a live database
 
 ## Next Run Recommendation
 
-Implement the **shared kernel** + **database layer** (Candidates 1 and 2 below). These are in-process or local-substitutable dependencies — always deepenable, zero external blockers.
+Implement the **User / auth / domain identity** module.  This will be the first domain module and will establish the `modules/<domain>/` folder structure including SQLAlchemy ORM model, Alembic migration, Pydantic v2 schemas, and FastAPI routes.
+
