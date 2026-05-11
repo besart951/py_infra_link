@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from app.modules.control_cabinet.domain.interface import ControlCabinetRepository
 from app.modules.sps_controller.application.commands import (
     CreateSpsControllerCommand,
@@ -28,18 +30,12 @@ from app.shared.pagination import Page
 from app.shared.result import Err, Ok, Result
 
 
+@dataclass(frozen=True, slots=True)
 class SpsControllerModule:
-    def __init__(
-        self,
-        controller_repository: SpsControllerRepository,
-        cabinet_repository: ControlCabinetRepository,
-        system_type_repository: SpsControllerSystemTypeRepository,
-        clock: Clock,
-    ) -> None:
-        self._controller_repository = controller_repository
-        self._cabinet_repository = cabinet_repository
-        self._system_type_repository = system_type_repository
-        self._clock = clock
+    controller_repository: SpsControllerRepository
+    cabinet_repository: ControlCabinetRepository
+    system_type_repository: SpsControllerSystemTypeRepository
+    clock: Clock
 
     async def create_controller(
         self, command: CreateSpsControllerCommand
@@ -55,7 +51,7 @@ class SpsControllerModule:
         except InvalidSpsControllerNameError as exc:
             return Err(exc)
 
-        cabinet = await self._cabinet_repository.get_by_id(command.cabinet_id)
+        cabinet = await self.cabinet_repository.get_by_id(command.cabinet_id)
         if cabinet is None:
             return Err(
                 ControlCabinetDoesNotExistError(
@@ -63,7 +59,7 @@ class SpsControllerModule:
                 )
             )
 
-        system_type = await self._system_type_repository.get_by_id(command.system_type_id)
+        system_type = await self.system_type_repository.get_by_id(command.system_type_id)
         if system_type is None:
             return Err(
                 SpsControllerSystemTypeDoesNotExistError(
@@ -71,13 +67,14 @@ class SpsControllerModule:
                 )
             )
 
-        existing = await self._controller_repository.get_by_cabinet_and_name(
+        existing = await self.controller_repository.get_by_cabinet_and_name(
             command.cabinet_id, name
         )
         if existing is not None:
             return Err(
                 SpsControllerNameConflictError(
-                    f"SPS controller with name '{name.value}' already exists in this cabinet"
+                    f"SPS controller with name '{name.value}' "
+                    "already exists in this cabinet"
                 )
             )
 
@@ -87,15 +84,15 @@ class SpsControllerModule:
             system_type_id=command.system_type_id,
             name=name.value,
             description=command.description,
-            created_at=self._clock.now(),
+            created_at=self.clock.now(),
         )
-        created = await self._controller_repository.create(controller)
+        created = await self.controller_repository.create(controller)
         return Ok(created)
 
     async def get_controller(
         self, query: GetSpsControllerQuery
     ) -> Result[SpsController, SpsControllerNotFoundError]:
-        controller = await self._controller_repository.get_by_id(query.controller_id)
+        controller = await self.controller_repository.get_by_id(query.controller_id)
         if controller is None or controller.cabinet_id != query.cabinet_id:
             return Err(
                 SpsControllerNotFoundError(f"SPS controller '{query.controller_id}' was not found")
@@ -103,7 +100,7 @@ class SpsControllerModule:
         return Ok(controller)
 
     async def list_controllers(self, query: ListSpsControllersQuery) -> Page[SpsController]:
-        items, total = await self._controller_repository.list_page(query.cabinet_id, query.page)
+        items, total = await self.controller_repository.list_page(query.cabinet_id, query.page)
         return Page[SpsController](
             items=items,
             total=total,
@@ -120,7 +117,7 @@ class SpsControllerModule:
         | SpsControllerNameConflictError
         | InvalidSpsControllerNameError,
     ]:
-        controller = await self._controller_repository.get_by_id(command.controller_id)
+        controller = await self.controller_repository.get_by_id(command.controller_id)
         if controller is None or controller.cabinet_id != command.cabinet_id:
             return Err(
                 SpsControllerNotFoundError(
@@ -137,7 +134,7 @@ class SpsControllerModule:
                 return Err(exc)
 
             if name_value != controller.name:
-                existing = await self._controller_repository.get_by_cabinet_and_name(
+                existing = await self.controller_repository.get_by_cabinet_and_name(
                     command.cabinet_id, name
                 )
                 if existing is not None:
@@ -150,7 +147,7 @@ class SpsControllerModule:
 
         system_type_id = controller.system_type_id
         if command.system_type_id is not None:
-            system_type = await self._system_type_repository.get_by_id(command.system_type_id)
+            system_type = await self.system_type_repository.get_by_id(command.system_type_id)
             if system_type is None:
                 return Err(
                     SpsControllerSystemTypeDoesNotExistError(
@@ -171,17 +168,17 @@ class SpsControllerModule:
             description=description,
             created_at=controller.created_at,
         )
-        updated = await self._controller_repository.update(updated_controller)
+        updated = await self.controller_repository.update(updated_controller)
         return Ok(updated)
 
     async def delete_controller(
         self, cabinet_id: ControlCabinetId, controller_id: SpsControllerId
     ) -> Result[None, SpsControllerNotFoundError]:
-        controller = await self._controller_repository.get_by_id(controller_id)
+        controller = await self.controller_repository.get_by_id(controller_id)
         if controller is None or controller.cabinet_id != cabinet_id:
             return Err(
                 SpsControllerNotFoundError(f"SPS controller '{controller_id}' was not found")
             )
 
-        await self._controller_repository.delete(controller_id)
+        await self.controller_repository.delete(controller_id)
         return Ok(None)

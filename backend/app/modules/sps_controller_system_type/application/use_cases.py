@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from app.modules.sps_controller_system_type.application.commands import (
     CreateSpsControllerSystemTypeCommand,
     UpdateSpsControllerSystemTypeCommand,
@@ -24,10 +26,10 @@ from app.shared.pagination import Page
 from app.shared.result import Err, Ok, Result
 
 
+@dataclass(frozen=True, slots=True)
 class SpsControllerSystemTypeModule:
-    def __init__(self, repository: SpsControllerSystemTypeRepository, clock: Clock) -> None:
-        self._repository = repository
-        self._clock = clock
+    repository: SpsControllerSystemTypeRepository
+    clock: Clock
 
     async def create_system_type(
         self, command: CreateSpsControllerSystemTypeCommand
@@ -40,7 +42,7 @@ class SpsControllerSystemTypeModule:
         except InvalidSpsControllerSystemTypeNameError as exc:
             return Err(exc)
 
-        existing = await self._repository.get_by_name(name)
+        existing = await self.repository.get_by_name(name)
         if existing is not None:
             return Err(
                 SpsControllerSystemTypeNameConflictError(
@@ -52,15 +54,15 @@ class SpsControllerSystemTypeModule:
             id=new_id(SpsControllerSystemTypeId),
             name=name.value,
             description=command.description,
-            created_at=self._clock.now(),
+            created_at=self.clock.now(),
         )
-        created = await self._repository.create(system_type)
+        created = await self.repository.create(system_type)
         return Ok(created)
 
     async def get_system_type(
         self, query: GetSpsControllerSystemTypeQuery
     ) -> Result[SpsControllerSystemType, SpsControllerSystemTypeNotFoundError]:
-        system_type = await self._repository.get_by_id(query.system_type_id)
+        system_type = await self.repository.get_by_id(query.system_type_id)
         if system_type is None:
             return Err(
                 SpsControllerSystemTypeNotFoundError(
@@ -72,7 +74,7 @@ class SpsControllerSystemTypeModule:
     async def list_system_types(
         self, query: ListSpsControllerSystemTypesQuery
     ) -> Page[SpsControllerSystemType]:
-        items, total = await self._repository.list_page(query.page)
+        items, total = await self.repository.list_page(query.page)
         return Page[SpsControllerSystemType](
             items=items,
             total=total,
@@ -88,7 +90,7 @@ class SpsControllerSystemTypeModule:
         | SpsControllerSystemTypeNameConflictError
         | InvalidSpsControllerSystemTypeNameError,
     ]:
-        system_type = await self._repository.get_by_id(command.system_type_id)
+        system_type = await self.repository.get_by_id(command.system_type_id)
         if system_type is None:
             return Err(
                 SpsControllerSystemTypeNotFoundError(
@@ -105,7 +107,7 @@ class SpsControllerSystemTypeModule:
                 return Err(exc)
 
             if name_value != system_type.name:
-                existing = await self._repository.get_by_name(name)
+                existing = await self.repository.get_by_name(name)
                 if existing is not None:
                     return Err(
                         SpsControllerSystemTypeNameConflictError(
@@ -123,13 +125,13 @@ class SpsControllerSystemTypeModule:
             description=description,
             created_at=system_type.created_at,
         )
-        updated = await self._repository.update(updated_system_type)
+        updated = await self.repository.update(updated_system_type)
         return Ok(updated)
 
     async def delete_system_type(
         self, system_type_id: SpsControllerSystemTypeId
     ) -> Result[None, SpsControllerSystemTypeNotFoundError]:
-        system_type = await self._repository.get_by_id(system_type_id)
+        system_type = await self.repository.get_by_id(system_type_id)
         if system_type is None:
             return Err(
                 SpsControllerSystemTypeNotFoundError(
@@ -137,5 +139,5 @@ class SpsControllerSystemTypeModule:
                 )
             )
 
-        await self._repository.delete(system_type_id)
+        await self.repository.delete(system_type_id)
         return Ok(None)

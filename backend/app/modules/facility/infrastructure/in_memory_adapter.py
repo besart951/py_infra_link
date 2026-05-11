@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from app.modules.facility.domain.models import Facility
 from app.modules.facility.domain.value_objects import FacilityName
 from app.shared.ids import FacilityId
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class InMemoryFacilityAdapter:
-    def __init__(self) -> None:
-        self._facilities: dict[FacilityId, Facility] = {}
+    _facilities: dict[FacilityId, Facility] = field(default_factory=dict)
 
     async def get_by_id(self, facility_id: FacilityId) -> Facility | None:
         return self._facilities.get(facility_id)

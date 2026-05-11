@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from app.modules.control_cabinet.domain.models import ControlCabinet
 from app.modules.control_cabinet.domain.value_objects import ControlCabinetName
 from app.shared.ids import BuildingId, ControlCabinetId
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class InMemoryControlCabinetAdapter:
-    def __init__(self) -> None:
-        self._cabinets: dict[ControlCabinetId, ControlCabinet] = {}
+    _cabinets: dict[ControlCabinetId, ControlCabinet] = field(default_factory=dict)
 
     async def get_by_id(self, cabinet_id: ControlCabinetId) -> ControlCabinet | None:
         return self._cabinets.get(cabinet_id)

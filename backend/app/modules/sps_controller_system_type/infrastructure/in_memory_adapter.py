@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from app.modules.sps_controller_system_type.domain.models import SpsControllerSystemType
 from app.modules.sps_controller_system_type.domain.value_objects import SpsControllerSystemTypeName
 from app.shared.ids import SpsControllerSystemTypeId
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class InMemorySpsControllerSystemTypeAdapter:
-    def __init__(self) -> None:
-        self._system_types: dict[SpsControllerSystemTypeId, SpsControllerSystemType] = {}
+    _system_types: dict[SpsControllerSystemTypeId, SpsControllerSystemType] = field(
+        default_factory=dict
+    )
 
     async def get_by_id(
         self, system_type_id: SpsControllerSystemTypeId

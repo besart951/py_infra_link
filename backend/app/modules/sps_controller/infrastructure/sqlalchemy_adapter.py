@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,9 +12,9 @@ from app.shared.ids import ControlCabinetId, SpsControllerId, SpsControllerSyste
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class SqlAlchemySpsControllerAdapter:
-    def __init__(self, session: AsyncSession) -> None:
-        self._session = session
+    _session: AsyncSession
 
     async def get_by_id(self, controller_id: SpsControllerId) -> SpsController | None:
         stmt = select(SpsControllerOrm).where(SpsControllerOrm.id == controller_id)

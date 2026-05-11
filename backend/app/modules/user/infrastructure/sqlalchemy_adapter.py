@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from dataclasses import dataclass
+
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,9 +24,9 @@ def _to_domain(record: UserRecord) -> User:
     )
 
 
+@dataclass(frozen=True, slots=True)
 class SqlAlchemyUserAdapter:
-    def __init__(self, session: AsyncSession) -> None:
-        self._session = session
+    _session: AsyncSession
 
     async def get_by_id(self, user_id: UserId) -> User | None:
         stmt = select(UserRecord).where(UserRecord.id == user_id)
@@ -56,6 +58,19 @@ class SqlAlchemyUserAdapter:
             raise UserEmailConflictError(f"User with email '{user.email}' already exists") from exc
 
         return _to_domain(record)
+
+    async def update(self, user: User) -> User:
+        stmt = select(UserRecord).where(UserRecord.id == user.id)
+        result = await self._session.execute(stmt)
+        record = result.scalar_one()
+        record.display_name = user.display_name
+        await self._session.flush()
+        return _to_domain(record)
+
+    async def delete(self, user_id: UserId) -> None:
+        stmt = delete(UserRecord).where(UserRecord.id == user_id)
+        await self._session.execute(stmt)
+        await self._session.flush()
 
     async def list_page(self, params: PageParams) -> tuple[list[User], int]:
         total_stmt = select(func.count()).select_from(UserRecord)

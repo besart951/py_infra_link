@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 from app.modules.sps_controller.domain.models import SpsController
 from app.modules.sps_controller.domain.value_objects import SpsControllerName
 from app.shared.ids import ControlCabinetId, SpsControllerId
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class InMemorySpsControllerAdapter:
-    def __init__(self) -> None:
-        self._controllers: dict[SpsControllerId, SpsController] = {}
+    _controllers: dict[SpsControllerId, SpsController] = field(default_factory=dict)
 
     async def get_by_id(self, controller_id: SpsControllerId) -> SpsController | None:
         return self._controllers.get(controller_id)

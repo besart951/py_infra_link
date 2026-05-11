@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from app.modules.building.application.commands import (
     CreateBuildingCommand,
     UpdateBuildingCommand,
@@ -24,16 +26,11 @@ from app.shared.pagination import Page
 from app.shared.result import Err, Ok, Result
 
 
+@dataclass(frozen=True, slots=True)
 class BuildingModule:
-    def __init__(
-        self,
-        building_repository: BuildingRepository,
-        facility_repository: FacilityRepository,
-        clock: Clock,
-    ) -> None:
-        self._building_repository = building_repository
-        self._facility_repository = facility_repository
-        self._clock = clock
+    building_repository: BuildingRepository
+    facility_repository: FacilityRepository
+    clock: Clock
 
     async def create_building(
         self, command: CreateBuildingCommand
@@ -48,14 +45,14 @@ class BuildingModule:
             return Err(exc)
 
         # Verify facility exists
-        facility = await self._facility_repository.get_by_id(command.facility_id)
+        facility = await self.facility_repository.get_by_id(command.facility_id)
         if facility is None:
             return Err(
                 FacilityDoesNotExistError(f"Facility '{command.facility_id}' does not exist")
             )
 
         # Check for name conflict in this facility
-        existing = await self._building_repository.get_by_facility_and_name(
+        existing = await self.building_repository.get_by_facility_and_name(
             command.facility_id, name
         )
         if existing is not None:
@@ -70,21 +67,21 @@ class BuildingModule:
             facility_id=command.facility_id,
             name=name.value,
             description=command.description,
-            created_at=self._clock.now(),
+            created_at=self.clock.now(),
         )
-        created = await self._building_repository.create(building)
+        created = await self.building_repository.create(building)
         return Ok(created)
 
     async def get_building(
         self, query: GetBuildingQuery
     ) -> Result[Building, BuildingNotFoundError]:
-        building = await self._building_repository.get_by_id(query.building_id)
+        building = await self.building_repository.get_by_id(query.building_id)
         if building is None or building.facility_id != query.facility_id:
             return Err(BuildingNotFoundError(f"Building '{query.building_id}' was not found"))
         return Ok(building)
 
     async def list_buildings(self, query: ListBuildingsQuery) -> Page[Building]:
-        items, total = await self._building_repository.list_page(query.facility_id, query.page)
+        items, total = await self.building_repository.list_page(query.facility_id, query.page)
         return Page[Building](
             items=items,
             total=total,
@@ -98,7 +95,7 @@ class BuildingModule:
         Building,
         BuildingNotFoundError | BuildingNameConflictError | InvalidBuildingNameError,
     ]:
-        building = await self._building_repository.get_by_id(command.building_id)
+        building = await self.building_repository.get_by_id(command.building_id)
         if building is None or building.facility_id != command.facility_id:
             return Err(BuildingNotFoundError(f"Building '{command.building_id}' was not found"))
 
@@ -111,7 +108,7 @@ class BuildingModule:
                 return Err(exc)
 
             if name_value != building.name:
-                existing = await self._building_repository.get_by_facility_and_name(
+                existing = await self.building_repository.get_by_facility_and_name(
                     command.facility_id, name
                 )
                 if existing is not None:
@@ -132,15 +129,15 @@ class BuildingModule:
             description=description,
             created_at=building.created_at,
         )
-        updated = await self._building_repository.update(updated_building)
+        updated = await self.building_repository.update(updated_building)
         return Ok(updated)
 
     async def delete_building(
         self, facility_id: FacilityId, building_id: BuildingId
     ) -> Result[None, BuildingNotFoundError]:
-        building = await self._building_repository.get_by_id(building_id)
+        building = await self.building_repository.get_by_id(building_id)
         if building is None or building.facility_id != facility_id:
             return Err(BuildingNotFoundError(f"Building '{building_id}' was not found"))
 
-        await self._building_repository.delete(building_id)
+        await self.building_repository.delete(building_id)
         return Ok(None)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,9 +12,9 @@ from app.shared.ids import BuildingId, ControlCabinetId
 from app.shared.pagination import PageParams
 
 
+@dataclass(frozen=True, slots=True)
 class SqlAlchemyControlCabinetAdapter:
-    def __init__(self, session: AsyncSession) -> None:
-        self._session = session
+    _session: AsyncSession
 
     async def get_by_id(self, cabinet_id: ControlCabinetId) -> ControlCabinet | None:
         stmt = select(ControlCabinetOrm).where(ControlCabinetOrm.id == cabinet_id)
