@@ -83,6 +83,7 @@ class ProjectResourceLinkModule:
                     "project_id": str(created.project_id),
                     "resource_type": str(created.resource_type),
                     "resource_id": str(created.resource_id),
+                    "owner_id": str(command.owner_id),
                 },
                 occurred_at=self.clock.now(),
             )
@@ -169,6 +170,7 @@ class ProjectResourceLinkModule:
                     "building_id": str(command.building_id),
                     "linked": str(result.linked),
                     "skipped": str(result.skipped),
+                    "owner_id": str(command.owner_id),
                 },
                 occurred_at=self.clock.now(),
             )
@@ -202,6 +204,7 @@ class ProjectResourceLinkModule:
                 payload={
                     "link_id": str(command.link_id),
                     "project_id": str(command.project_id),
+                    "owner_id": str(command.owner_id),
                 },
                 occurred_at=self.clock.now(),
             )
