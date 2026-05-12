@@ -30,6 +30,7 @@ FieldDeviceId = NewType("FieldDeviceId", uuid.UUID)
 BacnetObjectId = NewType("BacnetObjectId", uuid.UUID)
 ProjectId = NewType("ProjectId", uuid.UUID)
 ProjectResourceLinkId = NewType("ProjectResourceLinkId", uuid.UUID)
+NotificationId = NewType("NotificationId", uuid.UUID)
 UserId = NewType("UserId", uuid.UUID)
 
 # Generic alias used in type annotations where the exact ID type is not known.
@@ -43,6 +44,7 @@ AnyEntityId = (
     | BacnetObjectId
     | ProjectId
     | ProjectResourceLinkId
+    | NotificationId
     | UserId
 )
 

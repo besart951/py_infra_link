@@ -10,16 +10,16 @@
 - **Control Cabinet domain** — deep Control Cabinet Module, hierarchical routes, composite uniqueness, cross-module validation, tests
 - **SPS Controller System Type domain** — deep Module, classification classification, SQLAlchemy adapter + migration, tests
 - **SPS Controller domain** — deep Module, hierarchical routes, cross-module validation (Cabinet, System Type), SQLAlchemy adapter + migration, tests
+- **Field Device domain** — deep Module, hierarchical routes, cross-module validation (SPS Controller), SQLAlchemy adapter + migration, 9 tests
+- **BACnet Object domain** — deep Module, BacnetObjectType StrEnum, dual uniqueness constraints (type+instance, name), cross-module validation (Field Device), SQLAlchemy adapter + migration, 11 tests
+- **Project domain** — deep Module, ProjectName value object, per-owner name uniqueness, cross-module validation (User), SQLAlchemy adapter + migration, 10 tests
 
 ## In Progress
 
-_(none — ready to start Field Device domain)_
+_(none — ready to start Project Resource Link domain)_
 
 ## Not Started
 
-- Field Device domain
-- BACnet Object domain
-- Project domain
 - Project Resource Link / importing / copying
 - Live update / websocket event publishing
 - Notifications
@@ -38,4 +38,4 @@ _(none — ready to start Field Device domain)_
 
 ## Next Run Recommendation
 
-Implement the **Field Device domain** (priority 9). Continue following the hierarchical patterns.
+Implement **Project Resource Link** (priority 12). Requires Project + all infrastructure domains to be complete — both prerequisites are now satisfied.
