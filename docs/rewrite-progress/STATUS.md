@@ -11,15 +11,14 @@
 - **SPS Controller System Type domain** — deep Module, classification classification, SQLAlchemy adapter + migration, tests
 - **SPS Controller domain** — deep Module, hierarchical routes, cross-module validation (Cabinet, System Type), SQLAlchemy adapter + migration, tests
 - **Field Device domain** — deep Module, hierarchical routes, cross-module validation (SPS Controller), SQLAlchemy adapter + migration, 9 tests
+- **BACnet Object domain** — deep Module, BacnetObjectType StrEnum, dual uniqueness constraints (type+instance, name), cross-module validation (Field Device), SQLAlchemy adapter + migration, 11 tests
 
 ## In Progress
 
-_(none — ready to start BACnet Object domain)_
+_(none — ready to start Project domain)_
 
 ## Not Started
 
-- BACnet Object domain
-- BACnet Object domain
 - Project domain
 - Project Resource Link / importing / copying
 - Live update / websocket event publishing
@@ -39,4 +38,4 @@ _(none — ready to start BACnet Object domain)_
 
 ## Next Run Recommendation
 
-Implement the **BACnet Object domain** (priority 10). Field Device is now the established parent.
+Implement the **Project domain** (priority 11). The full physical/logical object tree is now complete.
