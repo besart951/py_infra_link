@@ -13,9 +13,9 @@ from app.modules.control_cabinet.application.queries import (
 )
 from app.modules.control_cabinet.domain.errors import (
     BuildingDoesNotExistError,
-    InvalidControlCabinetNameError,
     ControlCabinetNameConflictError,
     ControlCabinetNotFoundError,
+    InvalidControlCabinetNameError,
 )
 from app.modules.control_cabinet.domain.interface import ControlCabinetRepository
 from app.modules.control_cabinet.domain.models import ControlCabinet

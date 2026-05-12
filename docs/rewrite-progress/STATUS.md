@@ -10,14 +10,15 @@
 - **Control Cabinet domain** — deep Control Cabinet Module, hierarchical routes, composite uniqueness, cross-module validation, tests
 - **SPS Controller System Type domain** — deep Module, classification classification, SQLAlchemy adapter + migration, tests
 - **SPS Controller domain** — deep Module, hierarchical routes, cross-module validation (Cabinet, System Type), SQLAlchemy adapter + migration, tests
+- **Field Device domain** — deep Module, hierarchical routes, cross-module validation (SPS Controller), SQLAlchemy adapter + migration, 9 tests
 
 ## In Progress
 
-_(none — ready to start Field Device domain)_
+_(none — ready to start BACnet Object domain)_
 
 ## Not Started
 
-- Field Device domain
+- BACnet Object domain
 - BACnet Object domain
 - Project domain
 - Project Resource Link / importing / copying
@@ -38,4 +39,4 @@ _(none — ready to start Field Device domain)_
 
 ## Next Run Recommendation
 
-Implement the **Field Device domain** (priority 9). Continue following the hierarchical patterns.
+Implement the **BACnet Object domain** (priority 10). Field Device is now the established parent.
