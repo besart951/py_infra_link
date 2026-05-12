@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
+from app.modules.live_update.domain.interface import EventPublisher
+from app.modules.live_update.presentation.routes import get_event_publisher
 from app.modules.project.application.commands import CreateProjectCommand, UpdateProjectCommand
 from app.modules.project.application.queries import GetProjectQuery, ListProjectsQuery
 from app.modules.project.application.use_cases import ProjectModule
@@ -24,17 +26,23 @@ router = APIRouter(
 )
 
 
+def _make_module(session: AsyncSession, event_publisher: EventPublisher) -> ProjectModule:
+    return ProjectModule(
+        project_repository=SqlAlchemyProjectAdapter(session),
+        user_repository=SqlAlchemyUserAdapter(session),
+        clock=SystemClock(),
+        event_publisher=event_publisher,
+    )
+
+
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
     owner_id: UUID,
     request: ProjectCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> ProjectRead:
-    module = ProjectModule(
-        project_repository=SqlAlchemyProjectAdapter(session),
-        user_repository=SqlAlchemyUserAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session, event_publisher)
     result = await module.create_project(
         CreateProjectCommand(
             owner_id=UserId(owner_id),
@@ -54,12 +62,9 @@ async def get_project(
     owner_id: UUID,
     project_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> ProjectRead:
-    module = ProjectModule(
-        project_repository=SqlAlchemyProjectAdapter(session),
-        user_repository=SqlAlchemyUserAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session, event_publisher)
     result = await module.get_project(
         GetProjectQuery(
             owner_id=UserId(owner_id),
@@ -79,12 +84,9 @@ async def list_projects(
     page: int = 1,
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> Page[ProjectRead]:
-    module = ProjectModule(
-        project_repository=SqlAlchemyProjectAdapter(session),
-        user_repository=SqlAlchemyUserAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session, event_publisher)
     result = await module.list_projects(
         ListProjectsQuery(
             owner_id=UserId(owner_id), page=PageParams(page=page, size=size)
@@ -105,12 +107,9 @@ async def update_project(
     project_id: UUID,
     request: ProjectUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> ProjectRead:
-    module = ProjectModule(
-        project_repository=SqlAlchemyProjectAdapter(session),
-        user_repository=SqlAlchemyUserAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session, event_publisher)
     result = await module.update_project(
         UpdateProjectCommand(
             owner_id=UserId(owner_id),
@@ -131,12 +130,9 @@ async def delete_project(
     owner_id: UUID,
     project_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> Response:
-    module = ProjectModule(
-        project_repository=SqlAlchemyProjectAdapter(session),
-        user_repository=SqlAlchemyUserAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session, event_publisher)
     result = await module.delete_project(
         owner_id=UserId(owner_id),
         project_id=ProjectId(project_id),

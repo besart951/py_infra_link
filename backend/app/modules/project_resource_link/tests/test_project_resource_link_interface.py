@@ -5,6 +5,8 @@ from datetime import UTC, datetime
 
 import pytest
 
+from app.modules.live_update.domain.events import DomainEventType
+from app.modules.live_update.infrastructure.in_memory_publisher import InMemoryEventPublisher
 from app.modules.project.domain.models import Project
 from app.modules.project.infrastructure.in_memory_adapter import InMemoryProjectAdapter
 from app.modules.project_resource_link.application.commands import (
@@ -70,17 +72,24 @@ def hierarchy() -> InMemoryHierarchyReader:
 
 
 @pytest.fixture
+def publisher() -> InMemoryEventPublisher:
+    return InMemoryEventPublisher()
+
+
+@pytest.fixture
 def module(
     link_repo: InMemoryProjectResourceLinkAdapter,
     project_repo: InMemoryProjectAdapter,
     hierarchy: InMemoryHierarchyReader,
     clock: FixedClock,
+    publisher: InMemoryEventPublisher,
 ) -> ProjectResourceLinkModule:
     return ProjectResourceLinkModule(
         link_repository=link_repo,
         project_repository=project_repo,
         hierarchy_reader=hierarchy,
         clock=clock,
+        event_publisher=publisher,
     )
 
 
@@ -393,3 +402,93 @@ async def test_import_building_empty_hierarchy(
     summary = result.unwrap()
     assert summary.linked == 1
     assert summary.skipped == 0
+
+
+# ── Event emission ─────────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_link_resource_emits_event(
+    module: ProjectResourceLinkModule,
+    project_repo: InMemoryProjectAdapter,
+    publisher: InMemoryEventPublisher,
+    owner_id: UserId,
+    clock: FixedClock,
+) -> None:
+    project = await _seed_project(project_repo, owner_id, clock)
+
+    await module.link_resource(
+        LinkResourceCommand(
+            owner_id=owner_id,
+            project_id=project.id,
+            resource_type=ResourceType.BUILDING,
+            resource_id=uuid.uuid4(),
+        )
+    )
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_RESOURCE_LINKED)
+    assert len(events) == 1
+    assert events[0].payload["project_id"] == str(project.id)
+    assert events[0].payload["resource_type"] == ResourceType.BUILDING
+
+
+@pytest.mark.asyncio
+async def test_unlink_resource_emits_event(
+    module: ProjectResourceLinkModule,
+    project_repo: InMemoryProjectAdapter,
+    publisher: InMemoryEventPublisher,
+    owner_id: UserId,
+    clock: FixedClock,
+) -> None:
+    project = await _seed_project(project_repo, owner_id, clock)
+    link = (
+        await module.link_resource(
+            LinkResourceCommand(
+                owner_id=owner_id,
+                project_id=project.id,
+                resource_type=ResourceType.BUILDING,
+                resource_id=uuid.uuid4(),
+            )
+        )
+    ).unwrap()
+
+    publisher.clear()
+    await module.unlink_resource(
+        UnlinkResourceCommand(
+            owner_id=owner_id,
+            project_id=project.id,
+            link_id=link.id,
+        )
+    )
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_RESOURCE_UNLINKED)
+    assert len(events) == 1
+    assert events[0].payload["link_id"] == str(link.id)
+
+
+@pytest.mark.asyncio
+async def test_import_building_emits_event(
+    module: ProjectResourceLinkModule,
+    project_repo: InMemoryProjectAdapter,
+    hierarchy: InMemoryHierarchyReader,
+    publisher: InMemoryEventPublisher,
+    owner_id: UserId,
+    clock: FixedClock,
+) -> None:
+    project = await _seed_project(project_repo, owner_id, clock)
+    building_id = new_id(BuildingId)
+    hierarchy.add_building(building_id)
+
+    await module.import_building(
+        ImportBuildingCommand(
+            owner_id=owner_id,
+            project_id=project.id,
+            building_id=building_id,
+        )
+    )
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_BUILDING_IMPORTED)
+    assert len(events) == 1
+    assert events[0].payload["building_id"] == str(building_id)
+    assert events[0].payload["linked"] == "1"
+    assert events[0].payload["skipped"] == "0"

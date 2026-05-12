@@ -4,6 +4,8 @@ from datetime import UTC, datetime
 
 import pytest
 
+from app.modules.live_update.domain.events import DomainEventType
+from app.modules.live_update.infrastructure.in_memory_publisher import InMemoryEventPublisher
 from app.modules.project.application.commands import CreateProjectCommand, UpdateProjectCommand
 from app.modules.project.application.queries import GetProjectQuery, ListProjectsQuery
 from app.modules.project.application.use_cases import ProjectModule
@@ -38,15 +40,22 @@ def project_repo() -> InMemoryProjectAdapter:
 
 
 @pytest.fixture
+def publisher() -> InMemoryEventPublisher:
+    return InMemoryEventPublisher()
+
+
+@pytest.fixture
 def module(
     project_repo: InMemoryProjectAdapter,
     user_repo: InMemoryUserAdapter,
     clock: FixedClock,
+    publisher: InMemoryEventPublisher,
 ) -> ProjectModule:
     return ProjectModule(
         project_repository=project_repo,
         user_repository=user_repo,
         clock=clock,
+        event_publisher=publisher,
     )
 
 
@@ -259,3 +268,73 @@ async def test_delete_project_success(
     )
     assert isinstance(get_result, Err)
     assert isinstance(get_result.error, ProjectNotFoundError)
+
+
+# ── Event emission ─────────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_create_project_emits_event(
+    module: ProjectModule,
+    user_repo: InMemoryUserAdapter,
+    publisher: InMemoryEventPublisher,
+    clock: FixedClock,
+) -> None:
+    user = await _seed_user(user_repo, clock)
+    created = (
+        await module.create_project(
+            CreateProjectCommand(owner_id=user.id, name="Event Project")
+        )
+    ).unwrap()
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_CREATED)
+    assert len(events) == 1
+    assert events[0].payload["project_id"] == str(created.id)
+    assert events[0].payload["owner_id"] == str(user.id)
+    assert events[0].payload["name"] == "Event Project"
+
+
+@pytest.mark.asyncio
+async def test_update_project_emits_event(
+    module: ProjectModule,
+    user_repo: InMemoryUserAdapter,
+    publisher: InMemoryEventPublisher,
+    clock: FixedClock,
+) -> None:
+    user = await _seed_user(user_repo, clock)
+    created = (
+        await module.create_project(
+            CreateProjectCommand(owner_id=user.id, name="Before")
+        )
+    ).unwrap()
+
+    publisher.clear()
+    await module.update_project(
+        UpdateProjectCommand(owner_id=user.id, project_id=created.id, name="After")
+    )
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_UPDATED)
+    assert len(events) == 1
+    assert events[0].payload["name"] == "After"
+
+
+@pytest.mark.asyncio
+async def test_delete_project_emits_event(
+    module: ProjectModule,
+    user_repo: InMemoryUserAdapter,
+    publisher: InMemoryEventPublisher,
+    clock: FixedClock,
+) -> None:
+    user = await _seed_user(user_repo, clock)
+    created = (
+        await module.create_project(
+            CreateProjectCommand(owner_id=user.id, name="To Delete")
+        )
+    ).unwrap()
+
+    publisher.clear()
+    await module.delete_project(owner_id=user.id, project_id=created.id)
+
+    events = publisher.events_of_type(DomainEventType.PROJECT_DELETED)
+    assert len(events) == 1
+    assert events[0].payload["project_id"] == str(created.id)

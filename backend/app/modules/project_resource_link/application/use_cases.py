@@ -3,6 +3,8 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 
+from app.modules.live_update.domain.events import DomainEvent, DomainEventType
+from app.modules.live_update.domain.interface import EventPublisher
 from app.modules.project.domain.interface import ProjectRepository
 from app.modules.project_resource_link.application.commands import (
     ImportBuildingCommand,
@@ -37,6 +39,7 @@ class ProjectResourceLinkModule:
     project_repository: ProjectRepository
     hierarchy_reader: HierarchyReader
     clock: Clock
+    event_publisher: EventPublisher
 
     async def link_resource(
         self, command: LinkResourceCommand
@@ -71,6 +74,19 @@ class ProjectResourceLinkModule:
             linked_at=self.clock.now(),
         )
         created = await self.link_repository.create(link)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_RESOURCE_LINKED,
+                aggregate_id=uuid.UUID(str(created.id)),
+                payload={
+                    "link_id": str(created.id),
+                    "project_id": str(created.project_id),
+                    "resource_type": str(created.resource_type),
+                    "resource_id": str(created.resource_id),
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
         return Ok(created)
 
     async def import_building(
@@ -143,7 +159,21 @@ class ProjectResourceLinkModule:
         if new_links:
             await self.link_repository.create_many(new_links)
 
-        return Ok(ImportBuildingResult(linked=len(new_links), skipped=skipped))
+        result = ImportBuildingResult(linked=len(new_links), skipped=skipped)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_BUILDING_IMPORTED,
+                aggregate_id=uuid.UUID(str(command.project_id)),
+                payload={
+                    "project_id": str(command.project_id),
+                    "building_id": str(command.building_id),
+                    "linked": str(result.linked),
+                    "skipped": str(result.skipped),
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
+        return Ok(result)
 
     async def unlink_resource(
         self, command: UnlinkResourceCommand
@@ -165,6 +195,17 @@ class ProjectResourceLinkModule:
             )
 
         await self.link_repository.delete(command.link_id)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_RESOURCE_UNLINKED,
+                aggregate_id=uuid.UUID(str(command.link_id)),
+                payload={
+                    "link_id": str(command.link_id),
+                    "project_id": str(command.project_id),
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
         return Ok(None)
 
     async def list_links(

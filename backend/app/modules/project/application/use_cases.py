@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 
+from app.modules.live_update.domain.events import DomainEvent, DomainEventType
+from app.modules.live_update.domain.interface import EventPublisher
 from app.modules.project.application.commands import CreateProjectCommand, UpdateProjectCommand
 from app.modules.project.application.queries import GetProjectQuery, ListProjectsQuery
 from app.modules.project.domain.errors import (
@@ -25,6 +28,7 @@ class ProjectModule:
     project_repository: ProjectRepository
     user_repository: UserRepository
     clock: Clock
+    event_publisher: EventPublisher
 
     async def create_project(
         self, command: CreateProjectCommand
@@ -63,6 +67,18 @@ class ProjectModule:
             created_at=self.clock.now(),
         )
         created = await self.project_repository.create(project)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_CREATED,
+                aggregate_id=uuid.UUID(str(created.id)),
+                payload={
+                    "project_id": str(created.id),
+                    "owner_id": str(created.owner_id),
+                    "name": created.name,
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
         return Ok(created)
 
     async def get_project(
@@ -127,6 +143,18 @@ class ProjectModule:
             created_at=project.created_at,
         )
         updated = await self.project_repository.update(updated_project)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_UPDATED,
+                aggregate_id=uuid.UUID(str(updated.id)),
+                payload={
+                    "project_id": str(updated.id),
+                    "owner_id": str(updated.owner_id),
+                    "name": updated.name,
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
         return Ok(updated)
 
     async def delete_project(
@@ -137,4 +165,15 @@ class ProjectModule:
             return Err(ProjectNotFoundError(f"Project '{project_id}' was not found"))
 
         await self.project_repository.delete(project_id)
+        await self.event_publisher.publish(
+            DomainEvent(
+                event_type=DomainEventType.PROJECT_DELETED,
+                aggregate_id=uuid.UUID(str(project_id)),
+                payload={
+                    "project_id": str(project_id),
+                    "owner_id": str(owner_id),
+                },
+                occurred_at=self.clock.now(),
+            )
+        )
         return Ok(None)

@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
+from app.modules.live_update.domain.interface import EventPublisher
+from app.modules.live_update.presentation.routes import get_event_publisher
 from app.modules.project.infrastructure.sqlalchemy_adapter import SqlAlchemyProjectAdapter
 from app.modules.project_resource_link.application.commands import (
     ImportBuildingCommand,
@@ -44,12 +46,15 @@ import_router = APIRouter(
 )
 
 
-def _make_module(session: AsyncSession) -> ProjectResourceLinkModule:
+def _make_module(
+    session: AsyncSession, event_publisher: EventPublisher
+) -> ProjectResourceLinkModule:
     return ProjectResourceLinkModule(
         link_repository=SqlAlchemyProjectResourceLinkAdapter(session),
         project_repository=SqlAlchemyProjectAdapter(session),
         hierarchy_reader=SqlAlchemyHierarchyReader(session),
         clock=SystemClock(),
+        event_publisher=event_publisher,
     )
 
 
@@ -59,8 +64,9 @@ async def link_resource(
     project_id: UUID,
     request: LinkResourceRequest,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> ProjectResourceLinkRead:
-    module = _make_module(session)
+    module = _make_module(session, event_publisher)
     result = await module.link_resource(
         LinkResourceCommand(
             owner_id=UserId(owner_id),
@@ -83,8 +89,9 @@ async def list_links(
     page: int = 1,
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> Page[ProjectResourceLinkRead]:
-    module = _make_module(session)
+    module = _make_module(session, event_publisher)
     result = await module.list_links(
         ListLinksQuery(
             owner_id=UserId(owner_id),
@@ -114,8 +121,9 @@ async def unlink_resource(
     project_id: UUID,
     link_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> Response:
-    module = _make_module(session)
+    module = _make_module(session, event_publisher)
     result = await module.unlink_resource(
         UnlinkResourceCommand(
             owner_id=UserId(owner_id),
@@ -140,8 +148,9 @@ async def import_building(
     project_id: UUID,
     building_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
 ) -> ImportBuildingResponse:
-    module = _make_module(session)
+    module = _make_module(session, event_publisher)
     result = await module.import_building(
         ImportBuildingCommand(
             owner_id=UserId(owner_id),
