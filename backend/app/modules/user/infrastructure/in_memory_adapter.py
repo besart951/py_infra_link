@@ -8,9 +8,13 @@ from app.shared.ids import UserId
 from app.shared.pagination import PageParams
 
 
+def _user_store() -> dict[UserId, User]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryUserAdapter:
-    _users: dict[UserId, User] = field(default_factory=dict)
+    _users: dict[UserId, User] = field(default_factory=_user_store)
 
     async def get_by_id(self, user_id: UserId) -> User | None:
         return self._users.get(user_id)

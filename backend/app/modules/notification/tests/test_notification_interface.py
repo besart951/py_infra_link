@@ -42,7 +42,9 @@ def module(repo: InMemoryNotificationAdapter) -> NotificationModule:
     return NotificationModule(notification_repository=repo)
 
 
-def _make_notification(user_id: UserId, clock: FixedClock, *, is_read: bool = False) -> Notification:
+def _make_notification(
+    user_id: UserId, clock: FixedClock, *, is_read: bool = False
+) -> Notification:
     return Notification(
         id=new_id(NotificationId),
         user_id=user_id,

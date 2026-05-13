@@ -30,12 +30,16 @@ from app.shared.result import Ok
 router = APIRouter(prefix="/facilities", tags=["facilities"])
 
 
+def _make_module(session: AsyncSession) -> FacilityModule:
+    return FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+
+
 @router.post("", response_model=FacilityRead, status_code=status.HTTP_201_CREATED)
 async def create_facility(
     request: FacilityCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FacilityRead:
-    module = FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+    module = _make_module(session)
     result = await module.create_facility(
         CreateFacilityCommand(name=request.name, description=request.description)
     )
@@ -51,7 +55,7 @@ async def get_facility(
     facility_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FacilityRead:
-    module = FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+    module = _make_module(session)
     result = await module.get_facility(GetFacilityQuery(facility_id=FacilityId(facility_id)))
 
     if isinstance(result, Ok):
@@ -66,7 +70,7 @@ async def list_facilities(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[FacilityRead]:
-    module = FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+    module = _make_module(session)
     result = await module.list_facilities(
         ListFacilitiesQuery(page=PageParams(page=page, size=size))
     )
@@ -85,7 +89,7 @@ async def update_facility(
     request: FacilityUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FacilityRead:
-    module = FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+    module = _make_module(session)
     result = await module.update_facility(
         UpdateFacilityCommand(
             facility_id=FacilityId(facility_id),
@@ -105,7 +109,7 @@ async def delete_facility(
     facility_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = FacilityModule(repository=SqlAlchemyFacilityAdapter(session), clock=SystemClock())
+    module = _make_module(session)
     result = await module.delete_facility(facility_id=FacilityId(facility_id))
 
     if isinstance(result, Ok):

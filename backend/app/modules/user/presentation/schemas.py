@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,21 +12,9 @@ class CreateUserRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(from_attributes=True, frozen=True)
 
-    id: str
+    id: UUID
     email: str
     display_name: str
     created_at: datetime
-
-
-class UserPageResponse(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    items: list[UserResponse]
-    total: int
-    page: int
-    size: int
-    pages: int
-    has_next: bool
-    has_prev: bool

@@ -39,17 +39,21 @@ router = APIRouter(
 )
 
 
+def _make_module(session: AsyncSession) -> FieldDeviceModule:
+    return FieldDeviceModule(
+        device_repository=SqlAlchemyFieldDeviceAdapter(session),
+        controller_repository=SqlAlchemySpsControllerAdapter(session),
+        clock=SystemClock(),
+    )
+
+
 @router.post("", response_model=FieldDeviceRead, status_code=status.HTTP_201_CREATED)
 async def create_device(
     controller_id: UUID,
     request: FieldDeviceCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FieldDeviceRead:
-    module = FieldDeviceModule(
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.create_device(
         CreateFieldDeviceCommand(
             controller_id=SpsControllerId(controller_id),
@@ -70,11 +74,7 @@ async def get_device(
     device_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FieldDeviceRead:
-    module = FieldDeviceModule(
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.get_device(
         GetFieldDeviceQuery(
             controller_id=SpsControllerId(controller_id),
@@ -95,11 +95,7 @@ async def list_devices(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[FieldDeviceRead]:
-    module = FieldDeviceModule(
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.list_devices(
         ListFieldDevicesQuery(
             controller_id=SpsControllerId(controller_id), page=PageParams(page=page, size=size)
@@ -121,11 +117,7 @@ async def update_device(
     request: FieldDeviceUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> FieldDeviceRead:
-    module = FieldDeviceModule(
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.update_device(
         UpdateFieldDeviceCommand(
             controller_id=SpsControllerId(controller_id),
@@ -147,11 +139,7 @@ async def delete_device(
     device_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = FieldDeviceModule(
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.delete_device(
         controller_id=SpsControllerId(controller_id),
         device_id=FieldDeviceId(device_id),

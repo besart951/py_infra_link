@@ -6,7 +6,6 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.transaction import atomic
 from app.modules.user.domain.errors import UserEmailConflictError
 from app.modules.user.domain.models import User
 from app.modules.user.domain.value_objects import UserEmail
@@ -51,7 +50,7 @@ class SqlAlchemyUserAdapter:
         )
 
         try:
-            async with atomic(self._session):
+            async with self._session.begin_nested():
                 self._session.add(record)
                 await self._session.flush()
         except IntegrityError as exc:

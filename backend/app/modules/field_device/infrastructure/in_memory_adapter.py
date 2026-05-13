@@ -8,9 +8,13 @@ from app.shared.ids import FieldDeviceId, SpsControllerId
 from app.shared.pagination import PageParams
 
 
+def _device_store() -> dict[FieldDeviceId, FieldDevice]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryFieldDeviceAdapter:
-    _devices: dict[FieldDeviceId, FieldDevice] = field(default_factory=dict)
+    _devices: dict[FieldDeviceId, FieldDevice] = field(default_factory=_device_store)
 
     async def get_by_id(self, device_id: FieldDeviceId) -> FieldDevice | None:
         return self._devices.get(device_id)

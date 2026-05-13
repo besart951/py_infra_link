@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
+from app.modules.auth.presentation.dependencies import get_current_user
 from app.modules.notification.application.commands import (
     DeleteNotificationCommand,
     MarkAllReadCommand,
@@ -21,6 +22,7 @@ from app.modules.notification.presentation.schemas import (
     MarkAllReadResponse,
     NotificationRead,
 )
+from app.modules.user.domain.models import User
 from app.shared.ids import NotificationId, UserId
 from app.shared.pagination import Page, PageParams
 from app.shared.result import Ok
@@ -37,6 +39,15 @@ def _make_module(session: AsyncSession) -> NotificationModule:
     )
 
 
+def _require_owner(current_user: User, user_id: UUID) -> None:
+    """Raise 403 if the authenticated user is not the target user."""
+    if current_user.id != UserId(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this resource",
+        )
+
+
 @router.get("", response_model=Page[NotificationRead])
 async def list_notifications(
     user_id: UUID,
@@ -44,7 +55,9 @@ async def list_notifications(
     size: int = 20,
     unread_only: bool = False,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Page[NotificationRead]:
+    _require_owner(current_user, user_id)
     module = _make_module(session)
     result = await module.list_notifications(
         ListNotificationsQuery(
@@ -69,7 +82,9 @@ async def mark_as_read(
     user_id: UUID,
     notification_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> NotificationRead:
+    _require_owner(current_user, user_id)
     module = _make_module(session)
     result = await module.mark_as_read(
         MarkAsReadCommand(
@@ -89,7 +104,9 @@ async def mark_as_read(
 async def mark_all_as_read(
     user_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> MarkAllReadResponse:
+    _require_owner(current_user, user_id)
     module = _make_module(session)
     marked = await module.mark_all_as_read(MarkAllReadCommand(user_id=UserId(user_id)))
     return MarkAllReadResponse(marked=marked)
@@ -103,7 +120,9 @@ async def delete_notification(
     user_id: UUID,
     notification_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Response:
+    _require_owner(current_user, user_id)
     module = _make_module(session)
     result = await module.delete_notification(
         DeleteNotificationCommand(

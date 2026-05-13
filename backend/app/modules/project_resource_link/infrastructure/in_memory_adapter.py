@@ -11,10 +11,14 @@ from app.shared.ids import ProjectId, ProjectResourceLinkId
 from app.shared.pagination import PageParams
 
 
+def _link_store() -> dict[ProjectResourceLinkId, ProjectResourceLink]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryProjectResourceLinkAdapter:
     _links: dict[ProjectResourceLinkId, ProjectResourceLink] = field(
-        default_factory=dict
+        default_factory=_link_store
     )
 
     async def get_by_id(

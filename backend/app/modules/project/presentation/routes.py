@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
+from app.modules.auth.presentation.dependencies import get_current_user
 from app.modules.live_update.domain.interface import EventPublisher
 from app.modules.live_update.presentation.routes import get_event_publisher
 from app.modules.project.application.commands import CreateProjectCommand, UpdateProjectCommand
@@ -14,6 +15,7 @@ from app.modules.project.application.use_cases import ProjectModule
 from app.modules.project.infrastructure.sqlalchemy_adapter import SqlAlchemyProjectAdapter
 from app.modules.project.presentation.error_mapping import map_project_error
 from app.modules.project.presentation.schemas import ProjectCreate, ProjectRead, ProjectUpdate
+from app.modules.user.domain.models import User
 from app.modules.user.infrastructure.sqlalchemy_adapter import SqlAlchemyUserAdapter
 from app.shared.clock import SystemClock
 from app.shared.ids import ProjectId, UserId
@@ -35,13 +37,24 @@ def _make_module(session: AsyncSession, event_publisher: EventPublisher) -> Proj
     )
 
 
+def _require_owner(current_user: User, owner_id: UUID) -> None:
+    """Raise 403 if the authenticated user is not the requested owner."""
+    if current_user.id != UserId(owner_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this resource",
+        )
+
+
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
     owner_id: UUID,
     request: ProjectCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> ProjectRead:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.create_project(
         CreateProjectCommand(
@@ -63,7 +76,9 @@ async def get_project(
     project_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> ProjectRead:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.get_project(
         GetProjectQuery(
@@ -85,7 +100,9 @@ async def list_projects(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Page[ProjectRead]:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.list_projects(
         ListProjectsQuery(
@@ -108,7 +125,9 @@ async def update_project(
     request: ProjectUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> ProjectRead:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.update_project(
         UpdateProjectCommand(
@@ -131,7 +150,9 @@ async def delete_project(
     project_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Response:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.delete_project(
         owner_id=UserId(owner_id),
@@ -142,3 +163,4 @@ async def delete_project(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise map_project_error(result.error)
+

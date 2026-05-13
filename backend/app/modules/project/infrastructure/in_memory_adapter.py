@@ -8,9 +8,13 @@ from app.shared.ids import ProjectId, UserId
 from app.shared.pagination import PageParams
 
 
+def _project_store() -> dict[ProjectId, Project]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryProjectAdapter:
-    _projects: dict[ProjectId, Project] = field(default_factory=dict)
+    _projects: dict[ProjectId, Project] = field(default_factory=_project_store)
 
     async def get_by_id(self, project_id: ProjectId) -> Project | None:
         return self._projects.get(project_id)

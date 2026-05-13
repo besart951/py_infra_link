@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.database.engine import dispose_engine
+from app.modules.auth.presentation.routes import router as auth_router
 from app.modules.bacnet_object.presentation.routes import router as bacnet_object_router
 from app.modules.building.presentation.routes import router as building_router
 from app.modules.control_cabinet.presentation.routes import router as cabinet_router
@@ -15,6 +16,7 @@ from app.modules.facility.presentation.routes import router as facility_router
 from app.modules.field_device.presentation.routes import router as field_device_router
 from app.modules.live_update.infrastructure.connection_manager import ConnectionManager
 from app.modules.live_update.presentation.routes import router as ws_router
+from app.modules.notification.presentation.routes import router as notification_router
 from app.modules.project.presentation.routes import router as project_router
 from app.modules.project_resource_link.presentation.routes import (
     import_router as project_import_router,
@@ -46,6 +48,7 @@ app = FastAPI(
 )
 
 app.include_router(ws_router)
+app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(facility_router)
 app.include_router(building_router)
@@ -55,6 +58,7 @@ app.include_router(controller_router)
 app.include_router(field_device_router)
 app.include_router(bacnet_object_router)
 app.include_router(project_router)
+app.include_router(notification_router)
 app.include_router(project_link_router)
 app.include_router(project_import_router)
 

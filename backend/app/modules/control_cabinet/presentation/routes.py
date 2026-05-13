@@ -36,17 +36,21 @@ router = APIRouter(
 )
 
 
+def _make_module(session: AsyncSession) -> ControlCabinetModule:
+    return ControlCabinetModule(
+        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
+        building_repository=SqlAlchemyBuildingAdapter(session),
+        clock=SystemClock(),
+    )
+
+
 @router.post("", response_model=ControlCabinetRead, status_code=status.HTTP_201_CREATED)
 async def create_cabinet(
     building_id: UUID,
     request: ControlCabinetCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> ControlCabinetRead:
-    module = ControlCabinetModule(
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.create_cabinet(
         CreateControlCabinetCommand(
             building_id=BuildingId(building_id),
@@ -67,11 +71,7 @@ async def get_cabinet(
     cabinet_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> ControlCabinetRead:
-    module = ControlCabinetModule(
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.get_cabinet(
         GetControlCabinetQuery(
             building_id=BuildingId(building_id), cabinet_id=ControlCabinetId(cabinet_id)
@@ -91,11 +91,7 @@ async def list_cabinets(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[ControlCabinetRead]:
-    module = ControlCabinetModule(
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.list_cabinets(
         ListControlCabinetsQuery(
             building_id=BuildingId(building_id), page=PageParams(page=page, size=size)
@@ -117,11 +113,7 @@ async def update_cabinet(
     request: ControlCabinetUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> ControlCabinetRead:
-    module = ControlCabinetModule(
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.update_cabinet(
         UpdateControlCabinetCommand(
             building_id=BuildingId(building_id),
@@ -143,11 +135,7 @@ async def delete_cabinet(
     cabinet_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = ControlCabinetModule(
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.delete_cabinet(
         building_id=BuildingId(building_id), cabinet_id=ControlCabinetId(cabinet_id)
     )

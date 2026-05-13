@@ -8,15 +8,14 @@ from app.modules.project_resource_link.domain.errors import (
     ProjectResourceLinkNotFoundError,
     ResourceAlreadyLinkedError,
 )
+from app.shared.errors import DomainError
 
 
-def map_link_error(error: Exception) -> HTTPException:
-    if isinstance(error, (ProjectDoesNotExistError, ProjectResourceLinkNotFoundError)):
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(error),
-        )
-    if isinstance(error, BuildingDoesNotExistError):
+def map_link_error(error: DomainError) -> HTTPException:
+    if isinstance(
+        error,
+        (ProjectDoesNotExistError, ProjectResourceLinkNotFoundError, BuildingDoesNotExistError),
+    ):
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),

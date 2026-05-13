@@ -8,9 +8,15 @@ from app.shared.ids import ControlCabinetId, SpsControllerId
 from app.shared.pagination import PageParams
 
 
+def _controller_store() -> dict[SpsControllerId, SpsController]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemorySpsControllerAdapter:
-    _controllers: dict[SpsControllerId, SpsController] = field(default_factory=dict)
+    _controllers: dict[SpsControllerId, SpsController] = field(
+        default_factory=_controller_store
+    )
 
     async def get_by_id(self, controller_id: SpsControllerId) -> SpsController | None:
         return self._controllers.get(controller_id)

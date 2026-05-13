@@ -8,9 +8,13 @@ from app.shared.ids import BacnetObjectId, FieldDeviceId
 from app.shared.pagination import PageParams
 
 
+def _bacnet_object_store() -> dict[BacnetObjectId, BacnetObject]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryBacnetObjectAdapter:
-    _objects: dict[BacnetObjectId, BacnetObject] = field(default_factory=dict)
+    _objects: dict[BacnetObjectId, BacnetObject] = field(default_factory=_bacnet_object_store)
 
     async def get_by_id(self, object_id: BacnetObjectId) -> BacnetObject | None:
         return self._objects.get(object_id)

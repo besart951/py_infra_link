@@ -8,9 +8,13 @@ from app.shared.ids import BuildingId, FacilityId
 from app.shared.pagination import PageParams
 
 
+def _building_store() -> dict[BuildingId, Building]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryBuildingAdapter:
-    _buildings: dict[BuildingId, Building] = field(default_factory=dict)
+    _buildings: dict[BuildingId, Building] = field(default_factory=_building_store)
 
     async def get_by_id(self, building_id: BuildingId) -> Building | None:
         return self._buildings.get(building_id)

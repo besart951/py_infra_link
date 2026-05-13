@@ -5,11 +5,15 @@ from dataclasses import dataclass, field
 from app.modules.live_update.domain.events import DomainEvent, DomainEventType
 
 
+def _event_store() -> list[DomainEvent]:
+    return []
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryEventPublisher:
     """EventPublisher that collects emitted events for test assertions."""
 
-    _events: list[DomainEvent] = field(default_factory=list)
+    _events: list[DomainEvent] = field(default_factory=_event_store)
 
     async def publish(self, event: DomainEvent) -> None:
         self._events.append(event)
