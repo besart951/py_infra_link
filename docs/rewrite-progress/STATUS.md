@@ -13,17 +13,18 @@
 - **Field Device domain** — deep Module, hierarchical routes, cross-module validation (SPS Controller), SQLAlchemy adapter + migration, 9 tests
 - **BACnet Object domain** — deep Module, BacnetObjectType StrEnum, dual uniqueness constraints (type+instance, name), cross-module validation (Field Device), SQLAlchemy adapter + migration, 11 tests
 - **Project domain** — deep Module, ProjectName value object, per-owner name uniqueness, cross-module validation (User), SQLAlchemy adapter + migration, 10 tests
+- **Project Resource Link domain** — deep Module, ResourceType StrEnum, link/unlink/import-building use cases, HierarchyReader port, SQLAlchemy adapter + hierarchy reader, in-memory adapters, FastAPI routes, Alembic migration, 14 tests
+- **Live Update domain** — WebSocket broadcaster, ConnectionManager, CompositeEventPublisher (fans out to WS + Notifications), InMemoryEventPublisher, NullPublisher, tests
+- **Notification domain** — deep Module, Notification model, NotificationRepository protocol, event-driven creation via NotificationEventPublisher, SQLAlchemy adapter + in-memory adapter, FastAPI routes, Alembic migration, tests
 
 ## In Progress
 
-_(none — ready to start Project Resource Link domain)_
+_(none — all planned domains complete)_
 
 ## Not Started
 
-- Project Resource Link / importing / copying
-- Live update / websocket event publishing
-- Notifications
 - Cross-domain consistency and cleanup
+- CI pipeline (GitHub Actions)
 
 ## Architectural Decisions
 
@@ -38,4 +39,4 @@ _(none — ready to start Project Resource Link domain)_
 
 ## Next Run Recommendation
 
-Implement **Project Resource Link** (priority 12). Requires Project + all infrastructure domains to be complete — both prerequisites are now satisfied.
+Cross-domain consistency and cleanup: review all modules for consistency in error handling, pagination, event payloads, and naming. Add a GitHub Actions CI workflow.
