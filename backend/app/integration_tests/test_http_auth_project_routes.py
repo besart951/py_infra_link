@@ -75,7 +75,7 @@ async def test_register_returns_bearer_token_with_subject_claim(client: AsyncCli
 
 @pytest.mark.asyncio
 async def test_login_returns_new_token_for_existing_credentials(client: AsyncClient) -> None:
-    user_id, _ = await _register_user(
+    user_id, _registration_token = await _register_user(
         client,
         email="route.login@example.com",
         display_name="Route Login",
