@@ -16,12 +16,10 @@
 - **Project Resource Link domain** — deep Module, ResourceType StrEnum, link/unlink/import-building use cases, HierarchyReader port, SQLAlchemy adapter + hierarchy reader, in-memory adapters, FastAPI routes, Alembic migration, 14 tests
 - **Live Update domain** — WebSocket broadcaster, ConnectionManager, CompositeEventPublisher (fans out to WS + Notifications), InMemoryEventPublisher, NullPublisher, tests
 - **Notification domain** — deep Module, Notification model, NotificationRepository protocol, event-driven creation via NotificationEventPublisher, SQLAlchemy adapter + in-memory adapter, FastAPI routes, Alembic migration, tests
-
 - **JWT auth middleware** — `auth` module with `UserCredential` model, `CredentialRepository`/`PasswordHasher` ports, `AuthModule` (register + login), `BcryptPasswordHasher`/`PlainPasswordHasher` adapters, `InMemoryCredentialAdapter`, `SqlAlchemyCredentialAdapter`, `JwtSettings`, `get_current_user` FastAPI dependency, `/auth/register` and `/auth/login` routes, Alembic migration `h93ac4edbe92`, ownership guard on project and notification routes. 145 tests pass (9 new auth tests).
-
 - **PostgreSQL integration tests** — `testcontainers[postgres]` dev dependency; `app/integration_tests/` with conftest (session-scoped PG container + Alembic migrations, per-test transaction rollback via `NullPool`); 29 tests across User, Auth/Credential, Facility, Project, Notification adapters. Also fixed two production bugs uncovered by integration testing: (1) `SqlAlchemyUserAdapter.create` used `atomic()` → `session.begin()` which raises `InvalidRequestError` after autobegin — fixed to `session.begin_nested()` (SAVEPOINT); (2) all non-User ORM models used `Mapped[datetime]` without `DateTime(timezone=True)` causing asyncpg failures on timezone-aware datetimes — fixed to `DateTime(timezone=True)` across 10 ORM models.
-
 - **Full integration test suite** — Added `pytest.mark.integration` marker across all integration tests; registered marker in `pyproject.toml`; updated CI workflow to run unit tests (`-m "not integration"`) and integration tests (`-m integration`) as separate steps. Added 44 new integration tests covering the full physical hierarchy: Building (7), ControlCabinet (6), SpsControllerSystemType (6), SpsController (6), FieldDevice (6), BacnetObject (7), ProjectResourceLink (6). Total: **218 tests** (145 unit + 73 integration).
+- **HTTP-level auth/project route integration tests** — Added route-level tests with `httpx.AsyncClient` + ASGI transport and integration Postgres session override. Covered register/login JWT flow, protected project route auth requirement, and ownership enforcement (owner allowed, different user forbidden). Total: **222 tests** (145 unit + 77 integration).
 
 ## In Progress
 
@@ -38,9 +36,10 @@ _(nothing remaining)_
 
 ## Known Risks
 
-- Authentication/authorization behavior is still not implemented (identity CRUD exists)
+- Default JWT secret key for development/test is shorter than recommended HMAC key length and emits runtime warnings during token encode/decode.
+- HTTP-level integration coverage does not yet include every protected route module.
 
 ## Next Run Recommendation
 
-- All domains and integration tests complete (218 tests: 145 unit + 73 integration).
-- Next: add HTTP-level integration tests via FastAPI `TestClient`/`httpx.AsyncClient` against real Postgres (end-to-end route tests including JWT auth flow), or add role-based access control / authorization enforcement in route handlers.
+- Continue route-level integration hardening by adding HTTP tests for notification and project-resource-link endpoints (auth + ownership + error modes).
+- Optionally tighten JWT secret policy in settings (minimum key length validation for non-dev environments).
