@@ -41,8 +41,11 @@ jobs:
       - name: Type-check (pyright)
         run: uv run pyright
 
-      - name: Tests (pytest)
-        run: uv run pytest --tb=short -q
+      - name: Unit tests (pytest)
+        run: uv run pytest -m "not integration" --tb=short -q
+
+      - name: Integration tests (pytest + testcontainers)
+        run: uv run pytest -m integration --tb=short -q
 
       - name: Migration check (alembic offline SQL)
         run: uv run alembic upgrade head --sql > /dev/null

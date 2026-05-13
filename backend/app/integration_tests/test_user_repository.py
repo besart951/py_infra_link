@@ -18,6 +18,8 @@ from app.shared.ids import UserId, new_id
 from app.shared.pagination import PageParams
 from app.shared.result import Err, Ok
 
+pytestmark = pytest.mark.integration
+
 _FIXED = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
 
 

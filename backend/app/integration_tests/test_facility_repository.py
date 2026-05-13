@@ -19,6 +19,8 @@ from app.shared.clock import FixedClock
 from app.shared.ids import FacilityId, new_id
 from app.shared.result import Err, Ok
 
+pytestmark = pytest.mark.integration
+
 _FIXED = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
 
 

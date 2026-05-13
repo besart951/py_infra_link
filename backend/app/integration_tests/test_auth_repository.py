@@ -16,6 +16,8 @@ from app.modules.user.infrastructure.sqlalchemy_adapter import SqlAlchemyUserAda
 from app.shared.clock import FixedClock
 from app.shared.result import Err, Ok
 
+pytestmark = pytest.mark.integration
+
 _FIXED = datetime(2099, 1, 1, 12, 0, tzinfo=UTC)
 _JWT = JwtSettings(
     secret_key="integration-test-secret-key-long-enough-for-hs256",

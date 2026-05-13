@@ -44,6 +44,7 @@ reportMissingTypeStubs = false
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["app"]
+markers = ["integration: marks tests that require a running PostgreSQL instance (deselect with '-m not integration')"]
 
 [tool.alembic]
 script_location = "app/database/migrations"

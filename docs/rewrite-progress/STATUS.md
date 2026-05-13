@@ -21,14 +21,15 @@
 
 - **PostgreSQL integration tests** — `testcontainers[postgres]` dev dependency; `app/integration_tests/` with conftest (session-scoped PG container + Alembic migrations, per-test transaction rollback via `NullPool`); 29 tests across User, Auth/Credential, Facility, Project, Notification adapters. Also fixed two production bugs uncovered by integration testing: (1) `SqlAlchemyUserAdapter.create` used `atomic()` → `session.begin()` which raises `InvalidRequestError` after autobegin — fixed to `session.begin_nested()` (SAVEPOINT); (2) all non-User ORM models used `Mapped[datetime]` without `DateTime(timezone=True)` causing asyncpg failures on timezone-aware datetimes — fixed to `DateTime(timezone=True)` across 10 ORM models.
 
+- **Full integration test suite** — Added `pytest.mark.integration` marker across all integration tests; registered marker in `pyproject.toml`; updated CI workflow to run unit tests (`-m "not integration"`) and integration tests (`-m integration`) as separate steps. Added 44 new integration tests covering the full physical hierarchy: Building (7), ControlCabinet (6), SpsControllerSystemType (6), SpsController (6), FieldDevice (6), BacnetObject (7), ProjectResourceLink (6). Total: **218 tests** (145 unit + 73 integration).
+
 ## In Progress
 
 _(none)_
 
 ## Not Started
 
-- Auth layer (JWT middleware) ✅ done
-- Integration tests with PostgreSQL test container ✅ done
+_(nothing remaining)_
 
 ## Architectural Decisions
 
@@ -37,10 +38,9 @@ _(none)_
 
 ## Known Risks
 
-- No CI pipeline yet — needs a GitHub Actions workflow
 - Authentication/authorization behavior is still not implemented (identity CRUD exists)
 
 ## Next Run Recommendation
 
-- All domains complete. PostgreSQL integration tests pass (29 tests). 145 unit tests pass.
-- Next: CI/CD pipeline to run both test suites automatically, or add missing auth integration tests (role-based access, JWT expiry, refresh token).
+- All domains and integration tests complete (218 tests: 145 unit + 73 integration).
+- Next: add HTTP-level integration tests via FastAPI `TestClient`/`httpx.AsyncClient` against real Postgres (end-to-end route tests including JWT auth flow), or add role-based access control / authorization enforcement in route handlers.
