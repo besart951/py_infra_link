@@ -40,7 +40,6 @@ jobs:
 
       - name: Type-check (pyright)
         run: uv run pyright
-        continue-on-error: true
 
       - name: Tests (pytest)
         run: uv run pytest --tb=short -q
