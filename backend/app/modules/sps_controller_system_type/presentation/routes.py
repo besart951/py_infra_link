@@ -34,14 +34,18 @@ from app.shared.result import Ok
 router = APIRouter(prefix="/sps-controller-system-types", tags=["sps-controller-system-types"])
 
 
+def _make_module(session: AsyncSession) -> SpsControllerSystemTypeModule:
+    return SpsControllerSystemTypeModule(
+        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
+    )
+
+
 @router.post("", response_model=SpsControllerSystemTypeRead, status_code=status.HTTP_201_CREATED)
 async def create_system_type(
     request: SpsControllerSystemTypeCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerSystemTypeRead:
-    module = SpsControllerSystemTypeModule(
-        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
-    )
+    module = _make_module(session)
     result = await module.create_system_type(
         CreateSpsControllerSystemTypeCommand(name=request.name, description=request.description)
     )
@@ -57,9 +61,7 @@ async def get_system_type(
     system_type_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerSystemTypeRead:
-    module = SpsControllerSystemTypeModule(
-        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
-    )
+    module = _make_module(session)
     result = await module.get_system_type(
         GetSpsControllerSystemTypeQuery(system_type_id=SpsControllerSystemTypeId(system_type_id))
     )
@@ -76,9 +78,7 @@ async def list_system_types(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[SpsControllerSystemTypeRead]:
-    module = SpsControllerSystemTypeModule(
-        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
-    )
+    module = _make_module(session)
     result = await module.list_system_types(
         ListSpsControllerSystemTypesQuery(page=PageParams(page=page, size=size))
     )
@@ -97,9 +97,7 @@ async def update_system_type(
     request: SpsControllerSystemTypeUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerSystemTypeRead:
-    module = SpsControllerSystemTypeModule(
-        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
-    )
+    module = _make_module(session)
     result = await module.update_system_type(
         UpdateSpsControllerSystemTypeCommand(
             system_type_id=SpsControllerSystemTypeId(system_type_id),
@@ -119,9 +117,7 @@ async def delete_system_type(
     system_type_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = SpsControllerSystemTypeModule(
-        repository=SqlAlchemySpsControllerSystemTypeAdapter(session), clock=SystemClock()
-    )
+    module = _make_module(session)
     result = await module.delete_system_type(
         system_type_id=SpsControllerSystemTypeId(system_type_id)
     )

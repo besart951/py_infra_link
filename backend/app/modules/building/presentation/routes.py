@@ -31,17 +31,21 @@ from app.shared.result import Ok
 router = APIRouter(prefix="/facilities/{facility_id}/buildings", tags=["buildings"])
 
 
+def _make_module(session: AsyncSession) -> BuildingModule:
+    return BuildingModule(
+        building_repository=SqlAlchemyBuildingAdapter(session),
+        facility_repository=SqlAlchemyFacilityAdapter(session),
+        clock=SystemClock(),
+    )
+
+
 @router.post("", response_model=BuildingRead, status_code=status.HTTP_201_CREATED)
 async def create_building(
     facility_id: UUID,
     request: BuildingCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BuildingRead:
-    module = BuildingModule(
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        facility_repository=SqlAlchemyFacilityAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.create_building(
         CreateBuildingCommand(
             facility_id=FacilityId(facility_id),
@@ -62,11 +66,7 @@ async def get_building(
     building_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BuildingRead:
-    module = BuildingModule(
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        facility_repository=SqlAlchemyFacilityAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.get_building(
         GetBuildingQuery(facility_id=FacilityId(facility_id), building_id=BuildingId(building_id))
     )
@@ -84,11 +84,7 @@ async def list_buildings(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[BuildingRead]:
-    module = BuildingModule(
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        facility_repository=SqlAlchemyFacilityAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.list_buildings(
         ListBuildingsQuery(
             facility_id=FacilityId(facility_id), page=PageParams(page=page, size=size)
@@ -110,11 +106,7 @@ async def update_building(
     request: BuildingUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BuildingRead:
-    module = BuildingModule(
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        facility_repository=SqlAlchemyFacilityAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.update_building(
         UpdateBuildingCommand(
             facility_id=FacilityId(facility_id),
@@ -136,11 +128,7 @@ async def delete_building(
     building_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = BuildingModule(
-        building_repository=SqlAlchemyBuildingAdapter(session),
-        facility_repository=SqlAlchemyFacilityAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.delete_building(
         facility_id=FacilityId(facility_id), building_id=BuildingId(building_id)
     )

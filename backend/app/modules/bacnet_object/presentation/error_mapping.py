@@ -10,25 +10,23 @@ from app.modules.bacnet_object.domain.errors import (
     InvalidBacnetObjectInstanceError,
     InvalidBacnetObjectNameError,
 )
+from app.shared.errors import DomainError
 
 
-def map_bacnet_object_error(error: Exception) -> HTTPException:
+def map_bacnet_object_error(error: DomainError) -> HTTPException:
     if isinstance(error, (BacnetObjectNotFoundError, FieldDeviceDoesNotExistError)):
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         )
-    if isinstance(
-        error,
-        (
-            BacnetObjectInstanceConflictError,
-            BacnetObjectNameConflictError,
-            InvalidBacnetObjectNameError,
-            InvalidBacnetObjectInstanceError,
-        ),
-    ):
+    if isinstance(error, (BacnetObjectInstanceConflictError, BacnetObjectNameConflictError)):
         return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        )
+    if isinstance(error, (InvalidBacnetObjectNameError, InvalidBacnetObjectInstanceError)):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),
         )
     return HTTPException(

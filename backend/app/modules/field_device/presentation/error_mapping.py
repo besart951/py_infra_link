@@ -8,17 +8,23 @@ from app.modules.field_device.domain.errors import (
     InvalidFieldDeviceNameError,
     SpsControllerDoesNotExistError,
 )
+from app.shared.errors import DomainError
 
 
-def map_field_device_error(error: Exception) -> HTTPException:
+def map_field_device_error(error: DomainError) -> HTTPException:
     if isinstance(error, (FieldDeviceNotFoundError, SpsControllerDoesNotExistError)):
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         )
-    if isinstance(error, (FieldDeviceNameConflictError, InvalidFieldDeviceNameError)):
+    if isinstance(error, FieldDeviceNameConflictError):
         return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        )
+    if isinstance(error, InvalidFieldDeviceNameError):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),
         )
     return HTTPException(

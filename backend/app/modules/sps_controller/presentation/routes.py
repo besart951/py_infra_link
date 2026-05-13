@@ -41,18 +41,22 @@ router = APIRouter(
 )
 
 
+def _make_module(session: AsyncSession) -> SpsControllerModule:
+    return SpsControllerModule(
+        controller_repository=SqlAlchemySpsControllerAdapter(session),
+        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
+        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
+        clock=SystemClock(),
+    )
+
+
 @router.post("", response_model=SpsControllerRead, status_code=status.HTTP_201_CREATED)
 async def create_controller(
     cabinet_id: UUID,
     request: SpsControllerCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerRead:
-    module = SpsControllerModule(
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.create_controller(
         CreateSpsControllerCommand(
             cabinet_id=ControlCabinetId(cabinet_id),
@@ -74,12 +78,7 @@ async def get_controller(
     controller_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerRead:
-    module = SpsControllerModule(
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.get_controller(
         GetSpsControllerQuery(
             cabinet_id=ControlCabinetId(cabinet_id),
@@ -100,12 +99,7 @@ async def list_controllers(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[SpsControllerRead]:
-    module = SpsControllerModule(
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.list_controllers(
         ListSpsControllersQuery(
             cabinet_id=ControlCabinetId(cabinet_id), page=PageParams(page=page, size=size)
@@ -127,12 +121,7 @@ async def update_controller(
     request: SpsControllerUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> SpsControllerRead:
-    module = SpsControllerModule(
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.update_controller(
         UpdateSpsControllerCommand(
             cabinet_id=ControlCabinetId(cabinet_id),
@@ -157,12 +146,7 @@ async def delete_controller(
     controller_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = SpsControllerModule(
-        controller_repository=SqlAlchemySpsControllerAdapter(session),
-        cabinet_repository=SqlAlchemyControlCabinetAdapter(session),
-        system_type_repository=SqlAlchemySpsControllerSystemTypeAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.delete_controller(
         cabinet_id=ControlCabinetId(cabinet_id),
         controller_id=SpsControllerId(controller_id),

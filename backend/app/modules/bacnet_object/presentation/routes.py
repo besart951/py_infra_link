@@ -40,17 +40,21 @@ router = APIRouter(
 )
 
 
+def _make_module(session: AsyncSession) -> BacnetObjectModule:
+    return BacnetObjectModule(
+        object_repository=SqlAlchemyBacnetObjectAdapter(session),
+        device_repository=SqlAlchemyFieldDeviceAdapter(session),
+        clock=SystemClock(),
+    )
+
+
 @router.post("", response_model=BacnetObjectRead, status_code=status.HTTP_201_CREATED)
 async def create_object(
     device_id: UUID,
     request: BacnetObjectCreate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BacnetObjectRead:
-    module = BacnetObjectModule(
-        object_repository=SqlAlchemyBacnetObjectAdapter(session),
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.create_object(
         CreateBacnetObjectCommand(
             device_id=FieldDeviceId(device_id),
@@ -73,11 +77,7 @@ async def get_object(
     object_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BacnetObjectRead:
-    module = BacnetObjectModule(
-        object_repository=SqlAlchemyBacnetObjectAdapter(session),
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.get_object(
         GetBacnetObjectQuery(
             device_id=FieldDeviceId(device_id),
@@ -98,11 +98,7 @@ async def list_objects(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Page[BacnetObjectRead]:
-    module = BacnetObjectModule(
-        object_repository=SqlAlchemyBacnetObjectAdapter(session),
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.list_objects(
         ListBacnetObjectsQuery(
             device_id=FieldDeviceId(device_id), page=PageParams(page=page, size=size)
@@ -124,11 +120,7 @@ async def update_object(
     request: BacnetObjectUpdate,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> BacnetObjectRead:
-    module = BacnetObjectModule(
-        object_repository=SqlAlchemyBacnetObjectAdapter(session),
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.update_object(
         UpdateBacnetObjectCommand(
             device_id=FieldDeviceId(device_id),
@@ -152,11 +144,7 @@ async def delete_object(
     object_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> Response:
-    module = BacnetObjectModule(
-        object_repository=SqlAlchemyBacnetObjectAdapter(session),
-        device_repository=SqlAlchemyFieldDeviceAdapter(session),
-        clock=SystemClock(),
-    )
+    module = _make_module(session)
     result = await module.delete_object(
         device_id=FieldDeviceId(device_id),
         object_id=BacnetObjectId(object_id),

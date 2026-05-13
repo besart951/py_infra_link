@@ -17,14 +17,17 @@
 - **Live Update domain** — WebSocket broadcaster, ConnectionManager, CompositeEventPublisher (fans out to WS + Notifications), InMemoryEventPublisher, NullPublisher, tests
 - **Notification domain** — deep Module, Notification model, NotificationRepository protocol, event-driven creation via NotificationEventPublisher, SQLAlchemy adapter + in-memory adapter, FastAPI routes, Alembic migration, tests
 
+- **Cross-domain consistency** — all error mappers standardised to 409/422/404, `DomainError` parameter type throughout, user module pagination unified to `Page[T]`, `UserResponse` schema corrected (`from_attributes`, `UUID` id), `_make_module()` factory applied to all 11 route files, notification schemas UUID import normalised, CI pipeline added
+
 ## In Progress
 
-_(none — all planned domains complete)_
+_(none — all domains and consistency pass complete)_
 
 ## Not Started
 
-- Cross-domain consistency and cleanup
-- CI pipeline (GitHub Actions)
+- Fix pyright dict[Unknown] errors in in-memory adapters
+- Auth layer (JWT middleware)
+- Integration tests with PostgreSQL test container
 
 ## Architectural Decisions
 
@@ -39,4 +42,6 @@ _(none — all planned domains complete)_
 
 ## Next Run Recommendation
 
-Cross-domain consistency and cleanup: review all modules for consistency in error handling, pagination, event payloads, and naming. Add a GitHub Actions CI workflow.
+Fix pyright dict[Unknown] errors in in-memory adapters: add explicit type annotations
+`dict[SomeId, SomeDomain]` on `_store` fields of all in-memory adapters.
+Then consider adding JWT auth middleware or PostgreSQL integration tests.

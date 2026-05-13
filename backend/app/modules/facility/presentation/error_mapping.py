@@ -7,17 +7,23 @@ from app.modules.facility.domain.errors import (
     FacilityNotFoundError,
     InvalidFacilityNameError,
 )
+from app.shared.errors import DomainError
 
 
-def map_facility_error(error: Exception) -> HTTPException:
+def map_facility_error(error: DomainError) -> HTTPException:
     if isinstance(error, FacilityNotFoundError):
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         )
-    if isinstance(error, (FacilityNameConflictError, InvalidFacilityNameError)):
+    if isinstance(error, FacilityNameConflictError):
         return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        )
+    if isinstance(error, InvalidFacilityNameError):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),
         )
     return HTTPException(
