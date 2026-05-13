@@ -19,6 +19,8 @@
 
 - **JWT auth middleware** — `auth` module with `UserCredential` model, `CredentialRepository`/`PasswordHasher` ports, `AuthModule` (register + login), `BcryptPasswordHasher`/`PlainPasswordHasher` adapters, `InMemoryCredentialAdapter`, `SqlAlchemyCredentialAdapter`, `JwtSettings`, `get_current_user` FastAPI dependency, `/auth/register` and `/auth/login` routes, Alembic migration `h93ac4edbe92`, ownership guard on project and notification routes. 145 tests pass (9 new auth tests).
 
+- **PostgreSQL integration tests** — `testcontainers[postgres]` dev dependency; `app/integration_tests/` with conftest (session-scoped PG container + Alembic migrations, per-test transaction rollback via `NullPool`); 29 tests across User, Auth/Credential, Facility, Project, Notification adapters. Also fixed two production bugs uncovered by integration testing: (1) `SqlAlchemyUserAdapter.create` used `atomic()` → `session.begin()` which raises `InvalidRequestError` after autobegin — fixed to `session.begin_nested()` (SAVEPOINT); (2) all non-User ORM models used `Mapped[datetime]` without `DateTime(timezone=True)` causing asyncpg failures on timezone-aware datetimes — fixed to `DateTime(timezone=True)` across 10 ORM models.
+
 ## In Progress
 
 _(none)_
@@ -26,7 +28,7 @@ _(none)_
 ## Not Started
 
 - Auth layer (JWT middleware) ✅ done
-- Integration tests with PostgreSQL test container
+- Integration tests with PostgreSQL test container ✅ done
 
 ## Architectural Decisions
 
@@ -36,12 +38,9 @@ _(none)_
 ## Known Risks
 
 - No CI pipeline yet — needs a GitHub Actions workflow
-- Alembic migrations validated in offline SQL mode only; not yet applied to a live PostgreSQL instance
 - Authentication/authorization behavior is still not implemented (identity CRUD exists)
 
 ## Next Run Recommendation
 
-Fix pyright dict[Unknown] errors in in-memory adapters: add explicit type annotations
-`dict[SomeId, SomeDomain]` on `_store` fields of all in-memory adapters. ✅ complete (0 pyright errors)
-
-Next: Integration tests with PostgreSQL test container.
+- All domains complete. PostgreSQL integration tests pass (29 tests). 145 unit tests pass.
+- Next: CI/CD pipeline to run both test suites automatically, or add missing auth integration tests (role-based access, JWT expiry, refresh token).
