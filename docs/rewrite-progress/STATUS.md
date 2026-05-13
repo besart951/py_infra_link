@@ -17,16 +17,15 @@
 - **Live Update domain** — WebSocket broadcaster, ConnectionManager, CompositeEventPublisher (fans out to WS + Notifications), InMemoryEventPublisher, NullPublisher, tests
 - **Notification domain** — deep Module, Notification model, NotificationRepository protocol, event-driven creation via NotificationEventPublisher, SQLAlchemy adapter + in-memory adapter, FastAPI routes, Alembic migration, tests
 
-- **Pyright strict-type pass** — all 19 `dict[Unknown]/list[Unknown]/set[Unknown]` errors eliminated in in-memory adapters via typed module-level factory functions; `rowcount` replaced with `.returning().all()` in notification SQLAlchemy adapter; pyright now reports 0 errors
+- **JWT auth middleware** — `auth` module with `UserCredential` model, `CredentialRepository`/`PasswordHasher` ports, `AuthModule` (register + login), `BcryptPasswordHasher`/`PlainPasswordHasher` adapters, `InMemoryCredentialAdapter`, `SqlAlchemyCredentialAdapter`, `JwtSettings`, `get_current_user` FastAPI dependency, `/auth/register` and `/auth/login` routes, Alembic migration `h93ac4edbe92`, ownership guard on project and notification routes. 145 tests pass (9 new auth tests).
 
 ## In Progress
 
-_(none — all domains, consistency pass, and pyright pass complete)_
+_(none)_
 
 ## Not Started
 
-- Fix pyright dict[Unknown] errors in in-memory adapters ✅ done
-- Auth layer (JWT middleware)
+- Auth layer (JWT middleware) ✅ done
 - Integration tests with PostgreSQL test container
 
 ## Architectural Decisions
@@ -45,5 +44,4 @@ _(none — all domains, consistency pass, and pyright pass complete)_
 Fix pyright dict[Unknown] errors in in-memory adapters: add explicit type annotations
 `dict[SomeId, SomeDomain]` on `_store` fields of all in-memory adapters. ✅ complete (0 pyright errors)
 
-Next: JWT auth middleware — `get_current_user` FastAPI dependency, token verification,
-and wiring into protected routes (projects, notifications).
+Next: Integration tests with PostgreSQL test container.

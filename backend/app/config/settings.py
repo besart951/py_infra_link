@@ -19,6 +19,16 @@ class Settings(BaseSettings):
     debug: bool = Field(default=False, description="Enable debug mode.")
     echo_sql: bool = Field(default=False, description="Echo all SQL statements.")
 
+    jwt_secret_key: str = Field(
+        default="change-me-in-production",
+        description="Secret key used to sign and verify JWT tokens.",
+    )
+    jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm.")
+    jwt_expire_minutes: int = Field(
+        default=60 * 24 * 7,
+        description="JWT token lifetime in minutes (default: 7 days).",
+    )
+
 
 _settings: Settings | None = None
 
