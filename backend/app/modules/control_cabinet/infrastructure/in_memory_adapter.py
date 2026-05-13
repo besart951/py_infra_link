@@ -8,9 +8,13 @@ from app.shared.ids import BuildingId, ControlCabinetId
 from app.shared.pagination import PageParams
 
 
+def _cabinet_store() -> dict[ControlCabinetId, ControlCabinet]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryControlCabinetAdapter:
-    _cabinets: dict[ControlCabinetId, ControlCabinet] = field(default_factory=dict)
+    _cabinets: dict[ControlCabinetId, ControlCabinet] = field(default_factory=_cabinet_store)
 
     async def get_by_id(self, cabinet_id: ControlCabinetId) -> ControlCabinet | None:
         return self._cabinets.get(cabinet_id)

@@ -57,10 +57,11 @@ class SqlAlchemyNotificationAdapter:
                 NotificationOrm.is_read.is_(False),
             )
             .values(is_read=True)
+            .returning(NotificationOrm.id)
         )
         result = await self._session.execute(stmt)
         await self._session.flush()
-        return result.rowcount
+        return len(result.all())
 
     async def list_page(
         self,

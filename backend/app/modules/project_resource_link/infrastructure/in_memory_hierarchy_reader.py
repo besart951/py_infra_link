@@ -11,6 +11,14 @@ from app.shared.ids import (
 )
 
 
+def _uuid_set() -> set[uuid.UUID]:
+    return set()
+
+
+def _uuid_list_map() -> dict[uuid.UUID, list[uuid.UUID]]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryHierarchyReader:
     """In-memory implementation of HierarchyReader for use in tests.
@@ -18,15 +26,15 @@ class InMemoryHierarchyReader:
     Seed data via the ``add_*`` helper methods after construction.
     """
 
-    _buildings: set[uuid.UUID] = field(default_factory=set)
+    _buildings: set[uuid.UUID] = field(default_factory=_uuid_set)
     _cabinets_by_building: dict[uuid.UUID, list[uuid.UUID]] = field(
-        default_factory=dict
+        default_factory=_uuid_list_map
     )
     _controllers_by_cabinet: dict[uuid.UUID, list[uuid.UUID]] = field(
-        default_factory=dict
+        default_factory=_uuid_list_map
     )
     _devices_by_controller: dict[uuid.UUID, list[uuid.UUID]] = field(
-        default_factory=dict
+        default_factory=_uuid_list_map
     )
 
     def add_building(self, building_id: BuildingId) -> None:

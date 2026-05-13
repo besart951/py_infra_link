@@ -8,10 +8,14 @@ from app.shared.ids import SpsControllerSystemTypeId
 from app.shared.pagination import PageParams
 
 
+def _system_type_store() -> dict[SpsControllerSystemTypeId, SpsControllerSystemType]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemorySpsControllerSystemTypeAdapter:
     _system_types: dict[SpsControllerSystemTypeId, SpsControllerSystemType] = field(
-        default_factory=dict
+        default_factory=_system_type_store
     )
 
     async def get_by_id(

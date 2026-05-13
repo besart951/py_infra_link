@@ -8,10 +8,14 @@ from app.shared.ids import NotificationId, UserId
 from app.shared.pagination import PageParams
 
 
+def _notification_store() -> dict[NotificationId, Notification]:
+    return {}
+
+
 @dataclass(frozen=True, slots=True)
 class InMemoryNotificationAdapter:
     _notifications: dict[NotificationId, Notification] = field(
-        default_factory=dict
+        default_factory=_notification_store
     )
 
     async def create(self, notification: Notification) -> Notification:
