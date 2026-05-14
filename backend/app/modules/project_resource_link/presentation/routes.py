@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
+from app.modules.auth.presentation.dependencies import get_current_user
 from app.modules.live_update.domain.interface import EventPublisher
 from app.modules.live_update.presentation.routes import get_event_publisher
 from app.modules.project.infrastructure.sqlalchemy_adapter import SqlAlchemyProjectAdapter
@@ -30,6 +31,7 @@ from app.modules.project_resource_link.presentation.schemas import (
     LinkResourceRequest,
     ProjectResourceLinkRead,
 )
+from app.modules.user.domain.models import User
 from app.shared.clock import SystemClock
 from app.shared.ids import BuildingId, ProjectId, ProjectResourceLinkId, UserId
 from app.shared.pagination import Page, PageParams
@@ -58,6 +60,14 @@ def _make_module(
     )
 
 
+def _require_owner(current_user: User, owner_id: UUID) -> None:
+    if current_user.id != UserId(owner_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access this resource",
+        )
+
+
 @router.post("", response_model=ProjectResourceLinkRead, status_code=status.HTTP_201_CREATED)
 async def link_resource(
     owner_id: UUID,
@@ -65,7 +75,9 @@ async def link_resource(
     request: LinkResourceRequest,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> ProjectResourceLinkRead:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.link_resource(
         LinkResourceCommand(
@@ -90,7 +102,9 @@ async def list_links(
     size: int = 20,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Page[ProjectResourceLinkRead]:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.list_links(
         ListLinksQuery(
@@ -122,7 +136,9 @@ async def unlink_resource(
     link_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> Response:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.unlink_resource(
         UnlinkResourceCommand(
@@ -149,7 +165,9 @@ async def import_building(
     building_id: UUID,
     session: AsyncSession = Depends(get_session),  # noqa: B008
     event_publisher: EventPublisher = Depends(get_event_publisher),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ) -> ImportBuildingResponse:
+    _require_owner(current_user, owner_id)
     module = _make_module(session, event_publisher)
     result = await module.import_building(
         ImportBuildingCommand(

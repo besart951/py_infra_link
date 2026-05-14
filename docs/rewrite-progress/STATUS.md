@@ -20,6 +20,7 @@
 - **PostgreSQL integration tests** — `testcontainers[postgres]` dev dependency; `app/integration_tests/` with conftest (session-scoped PG container + Alembic migrations, per-test transaction rollback via `NullPool`); 29 tests across User, Auth/Credential, Facility, Project, Notification adapters. Also fixed two production bugs uncovered by integration testing: (1) `SqlAlchemyUserAdapter.create` used `atomic()` → `session.begin()` which raises `InvalidRequestError` after autobegin — fixed to `session.begin_nested()` (SAVEPOINT); (2) all non-User ORM models used `Mapped[datetime]` without `DateTime(timezone=True)` causing asyncpg failures on timezone-aware datetimes — fixed to `DateTime(timezone=True)` across 10 ORM models.
 - **Full integration test suite** — Added `pytest.mark.integration` marker across all integration tests; registered marker in `pyproject.toml`; updated CI workflow to run unit tests (`-m "not integration"`) and integration tests (`-m integration`) as separate steps. Added 44 new integration tests covering the full physical hierarchy: Building (7), ControlCabinet (6), SpsControllerSystemType (6), SpsController (6), FieldDevice (6), BacnetObject (7), ProjectResourceLink (6). Total: **218 tests** (145 unit + 73 integration).
 - **HTTP-level auth/project route integration tests** — Added route-level tests with `httpx.AsyncClient` + ASGI transport and integration Postgres session override. Covered register/login JWT flow, protected project route auth requirement, and ownership enforcement (owner allowed, different user forbidden). Total: **222 tests** (145 unit + 77 integration).
+- **HTTP-level notification/project-resource-link route hardening** — Added ownership auth enforcement to project-resource-link route handlers and route-level integration tests for notification and project-resource-link endpoints, covering auth required (`401`), cross-user denial (`403`), success flows, and not-found error modes (`404`). Total: **225 tests** (145 unit + 80 integration).
 
 ## In Progress
 
@@ -37,9 +38,9 @@ _(nothing remaining)_
 ## Known Risks
 
 - Default JWT secret key for development/test is shorter than recommended HMAC key length and emits runtime warnings during token encode/decode.
-- HTTP-level integration coverage does not yet include every protected route module.
+- HTTP-level integration coverage still does not include every endpoint/edge-path.
 
 ## Next Run Recommendation
 
-- Continue route-level integration hardening by adding HTTP tests for notification and project-resource-link endpoints (auth + ownership + error modes).
-- Optionally tighten JWT secret policy in settings (minimum key length validation for non-dev environments).
+- Tighten JWT secret policy in settings (e.g., minimum key length validation for non-dev environments).
+- Extend HTTP-level integration tests for project-resource-link import-building and additional authorization/error branches.
